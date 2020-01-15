@@ -1,0 +1,13 @@
+10.1: In figure 10.6, error checks regarding input sizes exceeding capacity are missing.
+
+10.2
+	a: Responses H2c and H2d are refutations.
+	b: The value of C2 is LOSS.
+
+10.3: Due to the rules of lexicographical order, a prefix should appear before any word beginning with it. For instance, "app" appears before "apple". Therefore, the word nearest to a prefix lexicographically that is still greater than or equal to it either is the prefix itself or begins with it and thus would follow it should it exist. The index at which such a word equal to or directly following the prefix would be returned by prefixSearch, as it uses binarySearch (with a conversion to positives).
+
+10.4
+	a: The final algorithm's running time would have a (relatively small) constant added.
+	b: The final algorithm's running time would quadruple.
+
+10.5: The change substantially worsens performance. T
