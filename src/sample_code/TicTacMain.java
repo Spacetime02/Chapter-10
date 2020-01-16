@@ -1,4 +1,4 @@
-package exercises;
+package sample_code;
 
 import java.awt.Frame;
 import java.awt.Panel;
@@ -18,6 +18,7 @@ public class TicTacMain extends Frame {
 		add(new TicTacPanel());
 
 		addWindowListener(new WindowAdapter() {
+
 			public void windowClosing(WindowEvent event) {
 				System.exit(0);
 			}
@@ -84,7 +85,8 @@ public class TicTacMain extends Frame {
 					computerSide = "X";
 					humanSide = "O";
 					doCompMove(false);
-				} else {
+				}
+				else {
 					humanSide = "X";
 					computerSide = "O";
 					System.out.println("You go first...");

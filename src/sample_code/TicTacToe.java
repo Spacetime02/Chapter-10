@@ -1,9 +1,10 @@
-package exercises;
+package sample_code;
 
-import weiss.util.Map;
-import weiss.util.HashMap;
+import sample_code.weiss.util.HashMap;
+import sample_code.weiss.util.Map;
 
 final class Position {
+
 	private int[][] board;
 
 	public Position(int[][] theBoard) {
@@ -17,7 +18,7 @@ final class Position {
 		if (!(rhs instanceof Position))
 			return false;
 
-		Position other = (Position) rhs;
+		// Position other = (Position) rhs;
 
 		for (int i = 0; i < 3; i++)
 			for (int j = 0; j < 3; j++)
@@ -38,6 +39,7 @@ final class Position {
 }
 
 class TicTacToe {
+
 	public static final int HUMAN = 0;
 	public static final int COMPUTER = 1;
 	public static final int EMPTY = 2;
@@ -64,7 +66,7 @@ class TicTacToe {
 	private Best chooseMove(int side, int alpha, int beta, int depth) {
 		int opp; // The other side
 		Best reply; // Opponent's best reply
-		int dc; // Placeholder
+//		int dc; // Placeholder
 		int simpleEval; // Result of an immediate evaluation
 		Position thisPosition = new Position(board);
 		int tableDepth = 5; // Max depth placed in Trans. table
@@ -86,7 +88,8 @@ class TicTacToe {
 		if (side == COMPUTER) {
 			opp = HUMAN;
 			value = alpha;
-		} else {
+		}
+		else {
 			opp = COMPUTER;
 			value = beta;
 		}

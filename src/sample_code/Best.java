@@ -1,6 +1,7 @@
-package exercises;
+package sample_code;
 
 final class Best {
+
 	int row;
 	int column;
 	int val;
