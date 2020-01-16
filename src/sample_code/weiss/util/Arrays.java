@@ -71,7 +71,7 @@ public class Arrays {
 		int comp;
 		while (i < len) {
 			comp = cmp.compare(x, arr[i]);
-			if (comp < 0)
+			if (comp > 0)
 				i++;
 			else
 				return comp == 0 ? i : -(i + 1);

@@ -3,7 +3,7 @@ package sample_code;
 import sample_code.weiss.util.HashMap;
 import sample_code.weiss.util.Map;
 
-final class Position {
+final class Position implements Comparable<Position> {
 
 	private int[][] board;
 
@@ -35,6 +35,11 @@ final class Position {
 				hashVal = hashVal * 4 + board[i][j];
 
 		return hashVal;
+	}
+
+	@Override
+	public int compareTo(Position o) {
+		return Integer.compare(hashCode(), o.hashCode());
 	}
 }
 
@@ -88,8 +93,7 @@ class TicTacToe {
 		if (side == COMPUTER) {
 			opp = HUMAN;
 			value = alpha;
-		}
-		else {
+		} else {
 			opp = COMPUTER;
 			value = beta;
 		}
@@ -175,6 +179,7 @@ class TicTacToe {
 	}
 
 	private Map<Position, Integer> transpositions = new HashMap<Position, Integer>();
+//	private Map<Position, Integer> transpositions = new TreeMap<Position, Integer>();
 	private int[][] board = new int[3][3];
 
 	// Play a move, possibly clearing a square

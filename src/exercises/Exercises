@@ -1,13 +1,19 @@
-10.1: In figure 10.6, error checks regarding input sizes exceeding capacity are missing.
+10.1:	In figure 10.6, error checks regarding input sizes exceeding capacity are missing.
 
 10.2
-	a: Responses H2c and H2d are refutations.
-	b: The value of C2 is LOSS.
+	a:	Responses H2c and H2d are refutations.
+	b:	The value of C2 is LOSS.
 
-10.3: Due to the rules of lexicographical order, a prefix should appear before any word beginning with it. For instance, "app" appears before "apple". Therefore, the word nearest to a prefix lexicographically that is still greater than or equal to it either is the prefix itself or begins with it and thus would follow it should it exist. The index at which such a word equal to or directly following the prefix would be returned by prefixSearch, as it uses binarySearch (with a conversion to positives).
+10.3:	Due to the rules of lexicographical order, a prefix should appear before any word beginning with it. For instance, "app" appears before "apple". Therefore, the word nearest to a prefix lexicographically that is still greater than or equal to it either is the prefix itself or begins with it and thus would follow it should it exist. The index at which such a word equal to or directly following the prefix would be returned by prefixSearch, as it uses binarySearch (with a conversion to positives).
 
 10.4
-	a: The final algorithm's running time would have a (relatively small) constant added.
-	b: The final algorithm's running time would quadruple.
+	a:	The final algorithm's running time would have a (relatively small) constant added.
+	b:	The final algorithm's running time would quadruple.
 
-10.5: The change substantially worsens performance. T
+10.5:	The change substantially worsened performance. This is especially the case for large dictionary sizes. For the 62570-word dictionary I used, the change increased the runtime by a factor of approximately 50.
+
+10.6:	The change somewhat worsened performance. It added about 50% to the runtime.
+
+10.7:	There was a wide variance in the performance of the algorithm, so I was unable to notice a significant difference in the runtime. The HashMap should have a better performance for larger boards, however.
+
+10.8:	

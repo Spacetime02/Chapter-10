@@ -61,8 +61,12 @@ public class TicTacMain extends Frame {
 		public void doCompMove(boolean thinkAboutIt) {
 			Best compMove;
 
-			if (thinkAboutIt)
+			if (thinkAboutIt) {
+				long nanos = System.nanoTime();
 				compMove = t.chooseMove(TicTacToe.COMPUTER);
+				nanos -= System.nanoTime();
+				System.out.println("Think time:" + -nanos + "ns");
+			}
 			else {
 				compMove = new Best(0, gameNum % 3, gameNum / 3);
 				gameNum = (gameNum + 1) % 9;
