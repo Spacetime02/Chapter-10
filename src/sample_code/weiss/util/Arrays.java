@@ -60,4 +60,23 @@ public class Arrays {
 			return -(low + 1);
 		return low;
 	}
+
+	public static <AnyType extends Comparable<? super AnyType>> int sortedLinearSearch(AnyType[] arr, AnyType x) {
+		return sortedLinearSearch(arr, x, new Collections.DefaultComparator<AnyType>());
+	}
+
+	public static <AnyType> int sortedLinearSearch(AnyType[] arr, AnyType x, Comparator<? super AnyType> cmp) {
+		int len = arr.length;
+		int i = 0;
+		int comp;
+		while (i < len) {
+			comp = cmp.compare(x, arr[i]);
+			if (comp < 0)
+				i++;
+			else
+				return comp == 0 ? i : -(i + 1);
+		}
+		return -(i + 1);
+	}
+
 }

@@ -87,6 +87,8 @@ public class WordSearch {
 		return numMatches;
 	}
 
+	private static final boolean BINARY_SEARCH = false;
+
 	/**
 	 * Performs the binary search for word search.
 	 * 
@@ -98,7 +100,7 @@ public class WordSearch {
 	 *         for which x is a prefix.
 	 */
 	private static int prefixSearch(String[] a, String x) {
-		int idx = Arrays.binarySearch(a, x);
+		int idx = BINARY_SEARCH ? Arrays.binarySearch(a, x) : Arrays.sortedLinearSearch(a, x);
 
 		if (idx < 0)
 			return -idx - 1;
