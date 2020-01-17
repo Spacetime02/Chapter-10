@@ -16,4 +16,8 @@
 
 10.7:	There was a wide variance in the performance of the algorithm, so I was unable to notice a significant difference in the runtime. The HashMap should have a better performance for larger boards, however.
 
-10.8:	
+10.8:	See sample_code.TicTacToe.java for an updated version.
+
+10.9:	Alpha-beta pruning roughly halves running time.
+
+10.10:	Removing the transposition table, adjusting tableDepth, and removing alpha-beta pruning all somewhat increase the runtime of the algorithm.
