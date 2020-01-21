@@ -186,8 +186,7 @@ public class HashSet<AnyType> extends AbstractCollection<AnyType> implements Set
 
 			do {
 				currentPos++;
-			}
-			while (currentPos < array.length && !isActive(array, currentPos));
+			} while (currentPos < array.length && !isActive(array, currentPos));
 
 			visited++;
 			return (AnyType) array[currentPos].element;
@@ -239,8 +238,7 @@ public class HashSet<AnyType> extends AbstractCollection<AnyType> implements Set
 			if (x == null) {
 				if (array[currentPos].element == null)
 					break;
-			}
-			else if (x.equals(array[currentPos].element))
+			} else if (x.equals(array[currentPos].element))
 				break;
 
 			currentPos += offset; // Compute ith probe

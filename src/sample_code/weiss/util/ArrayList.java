@@ -161,8 +161,7 @@ public class ArrayList<AnyType> extends AbstractCollection<AnyType> implements L
 			if (x == null) {
 				if (theItems[i] == null)
 					return i;
-			}
-			else if (x.equals(theItems[i]))
+			} else if (x.equals(theItems[i]))
 				return i;
 
 		return NOT_FOUND;

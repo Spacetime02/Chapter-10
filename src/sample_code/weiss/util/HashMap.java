@@ -58,8 +58,7 @@ public class HashMap<KeyType, ValueType> extends MapImpl<KeyType, ValueType> {
 				if (thisKey == null)
 					return thisKey == otherKey;
 				return thisKey.equals(otherKey);
-			}
-			else
+			} else
 				return false;
 		}
 	}

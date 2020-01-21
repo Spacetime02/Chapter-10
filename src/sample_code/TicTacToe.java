@@ -18,7 +18,7 @@ final class Position implements Comparable<Position> {
 		if (!(rhs instanceof Position))
 			return false;
 
-		// Position other = (Position) rhs;
+		// BoardState other = (BoardState) rhs;
 
 		for (int i = 0; i < 3; i++)
 			for (int j = 0; j < 3; j++)
@@ -96,25 +96,23 @@ class TicTacToe {
 			if (side == COMPUTER) {
 				opp = HUMAN;
 				value = alpha;
-			}
-			else {
+			} else {
 				opp = COMPUTER;
 				value = beta;
 			}
-		}
-		else {
+		} else {
 			if (side == COMPUTER) {
 				opp = HUMAN;
 				value = HUMAN_WIN;
-			}
-			else {
+			} else {
 				opp = COMPUTER;
 				value = PRIORITIZE_IMMEDIACY ? COMPUTER_WIN_IMMEDIATE : COMPUTER_WIN_LAST;
 			}
 		}
 
 		// if (ALPHA_BETA_PRUNING)
-		Outer: for (int row = 0; row < 3; row++) {
+		Outer:
+		for (int row = 0; row < 3; row++) {
 			for (int column = 0; column < 3; column++)
 				if (squareIsEmpty(row, column)) {
 					place(row, column, side);
@@ -207,7 +205,7 @@ class TicTacToe {
 	}
 
 	private Map<Position, Integer> transpositions = new HashMap<Position, Integer>();
-	// private Map<Position, Integer> transpositions = new TreeMap<Position, Integer>();
+	// private Map<BoardState, Integer> transpositions = new TreeMap<BoardState, Integer>();
 	private int[][] board = new int[3][3];
 
 	// Play a move, possibly clearing a square

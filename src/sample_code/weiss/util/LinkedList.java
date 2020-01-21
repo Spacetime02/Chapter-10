@@ -68,8 +68,7 @@ public class LinkedList<AnyType> extends AbstractCollection<AnyType> implements 
 			if (x == null) {
 				if (p.data == null)
 					return p;
-			}
-			else if (x.equals(p.data))
+			} else if (x.equals(p.data))
 				return p;
 
 		return NOT_FOUND;
@@ -282,8 +281,7 @@ public class LinkedList<AnyType> extends AbstractCollection<AnyType> implements 
 			p = beginMarker.next;
 			for (int i = 0; i < idx; i++)
 				p = p.next;
-		}
-		else {
+		} else {
 			p = endMarker;
 			for (int i = size(); i > idx; i--)
 				p = p.prev;

@@ -207,8 +207,7 @@ public class TreeSet<AnyType> extends AbstractCollection<AnyType> implements Sor
 			t = new AANode<AnyType>(x, nullNode, nullNode);
 			modCount++;
 			theSize++;
-		}
-		else {
+		} else {
 			int result = compare(x, t.element);
 
 			if (result < 0)
@@ -347,8 +346,7 @@ public class TreeSet<AnyType> extends AbstractCollection<AnyType> implements Sor
 					path.push(current);
 					current = current.left;
 				}
-			}
-			else {
+			} else {
 				AANode<AnyType> parent;
 
 				for (; !path.isEmpty(); current = parent) {

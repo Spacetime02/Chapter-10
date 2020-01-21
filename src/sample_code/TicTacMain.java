@@ -66,8 +66,7 @@ public class TicTacMain extends Frame {
 				compMove = t.chooseMove(TicTacToe.COMPUTER);
 				nanos -= System.nanoTime();
 				System.out.println("Think time:" + -nanos + "ns");
-			}
-			else {
+			} else {
 				compMove = new Best(0, gameNum % 3, gameNum / 3);
 				gameNum = (gameNum + 1) % 9;
 			}
@@ -89,8 +88,7 @@ public class TicTacMain extends Frame {
 					computerSide = "X";
 					humanSide = "O";
 					doCompMove(false);
-				}
-				else {
+				} else {
 					humanSide = "X";
 					computerSide = "O";
 					System.out.println("You go first...");

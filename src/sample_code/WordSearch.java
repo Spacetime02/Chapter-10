@@ -19,8 +19,7 @@ import sample_code.weiss.util.List;
 public class WordSearch {
 
 	/**
-	 * Constructor for WordSearch class. Prompts for and reads puzzle and dictionary
-	 * files.
+	 * Constructor for WordSearch class. Prompts for and reads puzzle and dictionary files.
 	 */
 	public WordSearch() throws IOException {
 		puzzleStream = openFile("Enter puzzle file");
@@ -41,8 +40,7 @@ public class WordSearch {
 	}
 
 	/**
-	 * Routine to solve the word search puzzle. Performs checks in all eight
-	 * directions.
+	 * Routine to solve the word search puzzle. Performs checks in all eight directions.
 	 * 
 	 * @return number of matches
 	 */
@@ -75,8 +73,7 @@ public class WordSearch {
 
 		charSequence += theBoard[baseRow][baseCol];
 
-		for (int i = baseRow + rowDelta, j = baseCol + colDelta; i >= 0 && j >= 0 && i < rows
-				&& j < columns; i += rowDelta, j += colDelta) {
+		for (int i = baseRow + rowDelta, j = baseCol + colDelta; i >= 0 && j >= 0 && i < rows && j < columns; i += rowDelta, j += colDelta) {
 			charSequence += theBoard[i][j];
 			searchResult = prefixSearch(theWords, charSequence);
 
@@ -97,10 +94,12 @@ public class WordSearch {
 	/**
 	 * Performs the binary search for word search.
 	 * 
-	 * @param a the sorted array of strings.
-	 * @param x the string to search for.
-	 * @return last position examined; this position either matches x, or x is a
-	 *         prefix of the mismatch, or there is no word for which x is a prefix.
+	 * @param a
+	 *            the sorted array of strings.
+	 * @param x
+	 *            the string to search for.
+	 * @return last position examined; this position either matches x, or x is a prefix of the mismatch, or there is no word
+	 *         for which x is a prefix.
 	 */
 	private static int prefixSearch(String[] a, String x) {
 		int idx = search(a, x);
@@ -116,8 +115,7 @@ public class WordSearch {
 	}
 
 	/**
-	 * Print a prompt and open a file. Retry until open is successful. Program exits
-	 * if end of file is hit.
+	 * Print a prompt and open a file. Retry until open is successful. Program exits if end of file is hit.
 	 */
 	private Scanner openFile(String message) {
 		String fileName = "";
@@ -135,7 +133,8 @@ public class WordSearch {
 
 				theFile = new FileReader(fileName);
 				fileIn = new Scanner(theFile);
-			} catch (IOException e) {
+			}
+			catch (IOException e) {
 				System.err.println("Cannot open " + fileName);
 			}
 		} while (fileIn == null);
@@ -145,8 +144,8 @@ public class WordSearch {
 	}
 
 	/**
-	 * Routine to read the grid. Checks to ensure that the grid is rectangular.
-	 * Checks to make sure that capacity is not exceeded is omitted.
+	 * Routine to read the grid. Checks to ensure that the grid is rectangular. Checks to make sure that capacity is not
+	 * exceeded is omitted.
 	 */
 	private void readPuzzle() throws IOException {
 		String oneLine;
@@ -176,8 +175,7 @@ public class WordSearch {
 	}
 
 	/**
-	 * Routine to read the dictionary. Error message is printed if dictionary is not
-	 * sorted.
+	 * Routine to read the dictionary. Error message is printed if dictionary is not sorted.
 	 */
 	private void readWords() {
 		List<String> words = new ArrayList<String>();
@@ -201,14 +199,15 @@ public class WordSearch {
 
 	// Cheap main
 	public static void main(String[] args) {
-//		String[] arr = new String[] {"Apple", "Banana", "Carrot", "Date"};
-//		System.out.println(Arrays.sortedLinearSearch(arr, "Appl"));
+		// String[] arr = new String[] {"Apple", "Banana", "Carrot", "Date"};
+		// System.out.println(Arrays.sortedLinearSearch(arr, "Appl"));
 
 		WordSearch p = null;
 
 		try {
 			p = new WordSearch();
-		} catch (IOException e) {
+		}
+		catch (IOException e) {
 			System.out.println("IO Error: ");
 			e.printStackTrace();
 			return;
