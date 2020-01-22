@@ -12,7 +12,7 @@ public class Game {
 	public static final int CELL_COUNT = BOARD_SIZE * BOARD_SIZE;
 	public static final int MATCH_SIZE = 4;
 
-	private final Map<BoardState, BoardState> cache;
+	private final Map<BoardState, Move> cache;
 
 	private final BoardState state;
 
@@ -118,14 +118,45 @@ public class Game {
 		return in;
 	}
 
-	// TODO add actual strategy.
 	private Point computeMove() {
-		for (int i = 0; i < BOARD_SIZE; i++)
-			for (int j = 0; j < BOARD_SIZE; j++)
-				if (state.get(i, j) == BoardState.EMPTY) {
-					return new Point(i, j);
-				}
-		return null;
+		return computeMove(currentPlayer, BoardState.HUMAN_IMMEDIATE + turn, BoardState.COMPUTER_IMMEDIATE + turn, turn).toPoint();
 	}
 
+	private Move computeMove(int alpha, int beta, int depth, int player) {
+		BoardState canonical = new BoardState();
+		Transform inv = state.canonicalize(canonical);
+		Move move = cache.get(canonical);
+		Move best = new Move(null, BoardState.UNKNOWN);
+		if (move != null)
+			return move.withDepth(depth);
+		Point[] empty = state.getCells(BoardState.EMPTY);
+		if (empty.length == 0) {
+			move = new Move(null, state.evaluateImmediate(depth));
+			cache.put(new BoardState(state), move);
+			return move;
+		}
+		int opponent = 3 - player;
+		int value = player == BoardState.COMPUTER ? alpha : beta;
+		for (Point p : state.getCells(BoardState.EMPTY)) {
+			state.set(p, player);
+			move = computeMove(alpha, beta, depth + 1, opponent);
+			state.set(p, BoardState.EMPTY);
+
+			boolean comp = player == BoardState.COMPUTER && move.value > value;
+			boolean humn = player == BoardState.HUMAN && move.value < value;
+			if (comp || humn) {
+				value = move.value;
+				if (comp)
+					alpha = value;
+				else
+					beta = value;
+				best = move;
+				if (alpha >= beta)
+					break;
+			}
+		}
+		cache.put(new BoardState(canonical), best);
+		System.out.println(move);
+		return move.transform(inv);
+	}
 }

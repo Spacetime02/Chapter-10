@@ -1,11 +1,8 @@
 package tic_tac_toe_5x5;
 
-import java.util.ArrayList;
+import java.awt.Point;
+import java.util.Arrays;
 import java.util.BitSet;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 public final class BoardState implements Comparable<BoardState> {
 
@@ -31,6 +28,10 @@ public final class BoardState implements Comparable<BoardState> {
 		this.data = (BitSet) other.data.clone();
 	}
 
+	public int get(Point p) {
+		return get(p.x, p.y);
+	}
+
 	public int get(int i, int j) {
 		return get(index(i, j));
 	}
@@ -42,6 +43,10 @@ public final class BoardState implements Comparable<BoardState> {
 		if (data.get(2 * index + 1))
 			val += 1;
 		return val;
+	}
+
+	public void set(Point p, int value) {
+		set(p.x, p.y, value);
 	}
 
 	public void set(int i, int j, int value) {
@@ -101,7 +106,7 @@ public final class BoardState implements Comparable<BoardState> {
 	}
 
 	public int evaluateImmediate(int depth) {
-		int val, i, j, k;
+		int state, i, j, k;
 		int[] set1, set2;
 		for (i = 0; i < Game.BOARD_SIZE; i++)
 			for (j = 0; j <= Game.BOARD_SIZE - Game.MATCH_SIZE; j++) {
@@ -113,10 +118,10 @@ public final class BoardState implements Comparable<BoardState> {
 					// |
 					set2[k] = get(j, i + k);
 				}
-				if ((val = equalOrUnknown(set1)) != UNKNOWN)
-					return val;
-				if ((val = equalOrUnknown(set2)) != UNKNOWN)
-					return val;
+				if ((state = equalOrUnknown(set1)) != EMPTY)
+					return stateToValue(state, depth);
+				if ((state = equalOrUnknown(set2)) != EMPTY)
+					return stateToValue(state, depth);
 			}
 		for (i = 0; i <= Game.BOARD_SIZE - Game.MATCH_SIZE; i++)
 			for (j = 0; j <= Game.BOARD_SIZE - Game.MATCH_SIZE; j++) {
@@ -128,12 +133,25 @@ public final class BoardState implements Comparable<BoardState> {
 					// /
 					set2[k] = get(i + Game.MATCH_SIZE - k - 1, j + k);
 				}
-				if ((val = equalOrUnknown(set1)) != UNKNOWN)
-					return val;
-				if ((val = equalOrUnknown(set2)) != UNKNOWN)
-					return val;
+				if ((state = equalOrUnknown(set1)) != EMPTY)
+					return stateToValue(state, depth);
+				if ((state = equalOrUnknown(set2)) != EMPTY)
+					return stateToValue(state, depth);
 			}
 		return UNKNOWN;
+	}
+
+	private static int stateToValue(int state, int depth) {
+		switch (state) {
+			case EMPTY:
+				return UNKNOWN;
+			case HUMAN:
+				return HUMAN_IMMEDIATE + depth;
+			case COMPUTER:
+				return COMPUTER_IMMEDIATE - depth;
+			default:
+				throw new Error("If you see this message, I am terribly sorry. It should not be possible");
+		}
 	}
 
 	private static int equalOrUnknown(int[] vals) {
@@ -147,6 +165,16 @@ public final class BoardState implements Comparable<BoardState> {
 		return val;
 	}
 
+	public Point[] getCells(int state) {
+		Point[] arr = new Point[Game.CELL_COUNT];
+		int ptr = 0;
+		for (Point p = new Point(); p.x < Game.BOARD_SIZE; p.x++)
+			for (p.y = 0; p.y < Game.BOARD_SIZE; p.y++)
+				if (get(p) == state)
+					arr[ptr++] = new Point(p);
+		return Arrays.copyOf(arr, ptr);
+	}
+
 	@Override
 	public boolean equals(Object obj) {
 		if (!(obj instanceof BoardState) || obj == null)
@@ -157,142 +185,6 @@ public final class BoardState implements Comparable<BoardState> {
 	@Override
 	public int hashCode() {
 		return data.hashCode();
-	}
-
-	public static final class Transform implements Comparable<Transform> {
-
-		// Reflect happens first.
-		// @formatter:off
-		public static final int REFLECT       = 0b100;
-		public static final int CLOCKWISE_0   = 0b000;
-		public static final int CLOCKWISE_90  = 0b001;
-		public static final int CLOCKWISE_180 = 0b010;
-		public static final int CLOCKWISE_270 = 0b011;
-
-		public static final int ROTATION_MASK   = 0b011;
-		public static final int REFLECTION_MASK = 0b100;
-		// @formatter:on
-
-		public static final List<Transform> TRANSFORMS;
-		public static final Map<Transform, Transform> INVERSION_TABLE;
-		public static final Map<Transform, Map<Transform, Transform>> COMPOSITION_TABLE;
-
-		static {
-			List<Transform> transforms = new ArrayList<>(8);
-			for (int i = 0; i < 8; i++)
-				transforms.add(new Transform(i));
-			TRANSFORMS = Collections.unmodifiableList(transforms);
-		}
-
-		static {
-			int[] inverses = new int[] { 0, 3, 2, 1, 4, 5, 6, 7 };
-			Map<Transform, Transform> inversionTable = new HashMap<>(8, Float.POSITIVE_INFINITY);
-			for (int i = 0; i < 8; i++)
-				inversionTable.put(TRANSFORMS.get(i), TRANSFORMS.get(inverses[i]));
-			INVERSION_TABLE = Collections.unmodifiableMap(inversionTable);
-		}
-
-		static {
-			// @formatter:off
-			int[][] compositions = new int[][] {
-					{ 0, 1, 2, 3, 4, 5, 6, 7 },
-					{ 1, 2, 3, 0, 7, 4, 5, 6 },
-					{ 2, 3, 0, 1, 6, 7, 4, 5 },
-					{ 3, 0, 1, 2, 5, 6, 7, 4 },
-					{ 4, 5, 6, 7, 0, 1, 2, 3 },
-					{ 5, 6, 7, 4, 3, 0, 1, 2 },
-					{ 6, 7, 4, 5, 2, 3, 0, 1 },
-					{ 7, 4, 5, 6, 1, 2, 3, 0 }
-				};
-			// @formatter:on
-			Map<Transform, Map<Transform, Transform>> compositionTable = new HashMap<>(8, Float.POSITIVE_INFINITY);
-			for (int i = 0; i < 8; i++) {
-				int[] row = compositions[i];
-				Map<Transform, Transform> compositionRow = new HashMap<>(8, Float.POSITIVE_INFINITY);
-				for (int j = 0; j < 8; j++)
-					compositionRow.put(TRANSFORMS.get(j), TRANSFORMS.get(row[j]));
-				compositionTable.put(TRANSFORMS.get(i), Collections.unmodifiableMap(compositionRow));
-			}
-			COMPOSITION_TABLE = Collections.unmodifiableMap(compositionTable);
-		}
-
-		private int transform;
-
-		private Transform(int transform) {
-			this.transform = transform;
-		}
-
-		public static Transform get(int transform) {
-			if (transform < 0 || transform > 8)
-				throw new IllegalArgumentException("Invalid transform code");
-			return TRANSFORMS.get(transform);
-		}
-
-		public static Transform get(boolean reflect, int rotations) {
-			if ((rotations & ~ROTATION_MASK) != 0)
-				throw new IllegalArgumentException("Invalid rotations: 0x" + Integer.toHexString(rotations));
-			return TRANSFORMS.get(reflect ? REFLECT | rotations : rotations);
-		}
-
-		public Transform compose(Transform other) {
-			return COMPOSITION_TABLE.get(this).get(other);
-		}
-
-		public Transform invert() {
-			return INVERSION_TABLE.get(this);
-		}
-
-		public Transform reflect() {
-			return TRANSFORMS.get(transform ^ REFLECT);
-		}
-
-		public BoardState apply(BoardState state) {
-			if (transform == CLOCKWISE_0)
-				return new BoardState(state);
-			BoardState newState = new BoardState();
-			if (transform == CLOCKWISE_90)
-				for (int i = 0; i < Game.BOARD_SIZE; i++)
-					for (int j = 0; i < Game.BOARD_SIZE; j++)
-						newState.set(j, Game.BOARD_SIZE - i, state.get(i, j));
-			else if (transform == CLOCKWISE_180)
-				for (int i = 0; i < Game.BOARD_SIZE; i++)
-					for (int j = 0; i < Game.BOARD_SIZE; j++)
-						newState.set(Game.BOARD_SIZE - i, Game.BOARD_SIZE - j, state.get(i, j));
-			else if (transform == CLOCKWISE_270)
-				for (int i = 0; i < Game.BOARD_SIZE; i++)
-					for (int j = 0; i < Game.BOARD_SIZE; j++)
-						newState.set(Game.BOARD_SIZE - j, i, state.get(i, j));
-			else if (transform == (REFLECT | CLOCKWISE_0))
-				for (int i = 0; i < Game.BOARD_SIZE; i++)
-					for (int j = 0; i < Game.BOARD_SIZE; j++)
-						newState.set(Game.BOARD_SIZE - j, Game.BOARD_SIZE - i, state.get(i, j));
-			else if (transform == (REFLECT | CLOCKWISE_90))
-				for (int i = 0; i < Game.BOARD_SIZE; i++)
-					for (int j = 0; i < Game.BOARD_SIZE; j++)
-						newState.set(j, Game.BOARD_SIZE - i, state.get(i, j));
-			else if (transform == (REFLECT | CLOCKWISE_180))
-				for (int i = 0; i < Game.BOARD_SIZE; i++)
-					for (int j = 0; i < Game.BOARD_SIZE; j++)
-						newState.set(Game.BOARD_SIZE - i, Game.BOARD_SIZE - j, state.get(i, j));
-			else if (transform == (REFLECT | CLOCKWISE_270))
-				for (int i = 0; i < Game.BOARD_SIZE; i++)
-					for (int j = 0; i < Game.BOARD_SIZE; j++)
-						newState.set(Game.BOARD_SIZE - j, i, state.get(i, j));
-			else
-				throw new Error("If you see this message, I am truly sorry. You shouldn't.");
-			return newState;
-		}
-
-		@Override
-		public int hashCode() {
-			return transform;
-		}
-
-		@Override
-		public int compareTo(Transform o) throws NullPointerException {
-			return Integer.compare(this.transform, o.transform);
-		}
-
 	}
 
 }
