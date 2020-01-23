@@ -4,19 +4,46 @@ import java.awt.Point;
 import java.util.Arrays;
 import java.util.BitSet;
 
-public final class BoardState implements Comparable<BoardState> {
+final class BoardState implements Comparable<BoardState> {
 
 	// @formatter:off
 	public static final int EMPTY    = 0;
 	public static final int COMPUTER = 1;
 	public static final int HUMAN    = 2;
 
-	public static final int HUMAN_IMMEDIATE    = -Game.CELL_COUNT;
-	public static final int HUMAN_LATE         = -1;
-	public static final int UNKNOWN            =  0;
-	public static final int COMPUTER_LATE      =  1;
-	public static final int COMPUTER_IMMEDIATE =  Game.CELL_COUNT;
+	public static final Integer UNKNOWN            =  null;
+	public static final Integer HUMAN_WIN    = -Game.CELL_COUNT - 1;
+	public static final Integer TIE                =  0;
+	public static final Integer COMPUTER_WIN =  Game.CELL_COUNT + 1;
 	// @formatter:on
+
+	private static int equalOrEmpty(int[] cells) {
+		int val = cells[0];
+		if (val == EMPTY)
+			return EMPTY;
+		for (int i = 1; i < cells.length; i++) {
+			if (cells[i] != val)
+				return EMPTY;
+		}
+		return val;
+	}
+
+	public static int index(int i, int j) {
+		return i * Game.BOARD_SIZE + j;
+	}
+
+	private static int stateToValue(int state, int depth) {
+		switch (state) {
+			case EMPTY:
+				return UNKNOWN;
+			case HUMAN:
+				return HUMAN_WIN + depth;
+			case COMPUTER:
+				return COMPUTER_WIN - depth;
+			default:
+				throw new Error("If you see this message, I am terribly sorry. It should not be possible");
+		}
+	}
 
 	private final BitSet data;
 
@@ -28,51 +55,20 @@ public final class BoardState implements Comparable<BoardState> {
 		this.data = (BitSet) other.data.clone();
 	}
 
-	public int get(Point p) {
-		return get(p.x, p.y);
-	}
-
-	public int get(int i, int j) {
-		return get(index(i, j));
-	}
-
-	public int get(int index) {
-		int val = 0;
-		if (data.get(2 * index))
-			val += 2;
-		if (data.get(2 * index + 1))
-			val += 1;
-		return val;
-	}
-
-	public void set(Point p, int value) {
-		set(p.x, p.y, value);
-	}
-
-	public void set(int i, int j, int value) {
-		set(index(i, j), value);
-	}
-
-	public void set(int index, int value) {
-		if (value < 0 || value > 2)
-			throw new IllegalArgumentException("Invlaid value");
-		data.set(2 * index, value == 2);
-		data.set(2 * index + 1, value == 1);
-	}
-
-	public void set(BoardState other) {
-		data.clear();
-		data.or(other.data);
+	public Transform canonicalize() {
+		return canonicalize(this);
 	}
 
 	/**
 	 * @return The inverse of the canonicalizing {@code Transform}.
 	 */
 	public Transform canonicalize(BoardState dest) {
+		if (dest == null)
+			dest = this;
 		BoardState maxState = null;
 		Transform maxTransform = null;
 		for (Transform tf : Transform.TRANSFORMS) {
-			BoardState state = transform(tf);
+			BoardState state = tf.apply(this);
 			if (maxState == null || state.compareTo(maxState) > 0) {
 				maxTransform = tf;
 				maxState = state;
@@ -82,16 +78,8 @@ public final class BoardState implements Comparable<BoardState> {
 		return maxTransform.invert();
 	}
 
-	public BoardState transform(Transform transform) {
-		return transform.apply(this);
-	}
-
-	public static int inverseTransform(int transform) {
-		return (transform & 4) == 4 ? transform : 4 - transform;
-	}
-
-	public static int index(int i, int j) {
-		return i * Game.BOARD_SIZE + j;
+	public void clear() {
+		data.clear();
 	}
 
 	@Override
@@ -105,7 +93,15 @@ public final class BoardState implements Comparable<BoardState> {
 		return 0;
 	}
 
-	public int evaluateImmediate(int depth) {
+	@Override
+	public boolean equals(Object obj) {
+		if (!(obj instanceof BoardState) || obj == null)
+			return false;
+		return data.equals(((BoardState) obj).data);
+	}
+
+	public Integer evaluateImmediate() {
+		int depth = data.cardinality(); // 0b01 and 0b10 contribute 1 while 0b00 contributes 0.
 		int state, i, j, k;
 		int[] set1, set2;
 		for (i = 0; i < Game.BOARD_SIZE; i++)
@@ -118,9 +114,9 @@ public final class BoardState implements Comparable<BoardState> {
 					// |
 					set2[k] = get(j, i + k);
 				}
-				if ((state = equalOrUnknown(set1)) != EMPTY)
+				if ((state = equalOrEmpty(set1)) != EMPTY)
 					return stateToValue(state, depth);
-				if ((state = equalOrUnknown(set2)) != EMPTY)
+				if ((state = equalOrEmpty(set2)) != EMPTY)
 					return stateToValue(state, depth);
 			}
 		for (i = 0; i <= Game.BOARD_SIZE - Game.MATCH_SIZE; i++)
@@ -133,36 +129,30 @@ public final class BoardState implements Comparable<BoardState> {
 					// /
 					set2[k] = get(i + Game.MATCH_SIZE - k - 1, j + k);
 				}
-				if ((state = equalOrUnknown(set1)) != EMPTY)
+				if ((state = equalOrEmpty(set1)) != EMPTY)
 					return stateToValue(state, depth);
-				if ((state = equalOrUnknown(set2)) != EMPTY)
+				if ((state = equalOrEmpty(set2)) != EMPTY)
 					return stateToValue(state, depth);
 			}
-		return UNKNOWN;
+		System.out.println(depth);
+		return depth == Game.CELL_COUNT ? TIE : UNKNOWN;
 	}
 
-	private static int stateToValue(int state, int depth) {
-		switch (state) {
-			case EMPTY:
-				return UNKNOWN;
-			case HUMAN:
-				return HUMAN_IMMEDIATE + depth;
-			case COMPUTER:
-				return COMPUTER_IMMEDIATE - depth;
-			default:
-				throw new Error("If you see this message, I am terribly sorry. It should not be possible");
-		}
-	}
-
-	private static int equalOrUnknown(int[] vals) {
-		int val = vals[0];
-		if (val == UNKNOWN)
-			return UNKNOWN;
-		for (int i = 1; i < vals.length; i++) {
-			if (vals[i] != val)
-				return UNKNOWN;
-		}
+	public int get(int index) {
+		int val = 0;
+		if (data.get(2 * index))
+			val += 2;
+		if (data.get(2 * index + 1))
+			val += 1;
 		return val;
+	}
+
+	public int get(int i, int j) {
+		return get(index(i, j));
+	}
+
+	public int get(Point p) {
+		return get(p.x, p.y);
 	}
 
 	public Point[] getCells(int state) {
@@ -176,15 +166,33 @@ public final class BoardState implements Comparable<BoardState> {
 	}
 
 	@Override
-	public boolean equals(Object obj) {
-		if (!(obj instanceof BoardState) || obj == null)
-			return false;
-		return data.equals(((BoardState) obj).data);
-	}
-
-	@Override
 	public int hashCode() {
 		return data.hashCode();
+	}
+
+	public void set(BoardState other) {
+		data.clear();
+		data.or(other.data);
+	}
+
+	public void set(int index, int player) {
+		if (player < 0 || player > 2)
+			throw new IllegalArgumentException("Invlaid player");
+		data.set(2 * index, player == 2);
+		data.set(2 * index + 1, player == 1);
+	}
+
+	public void set(int i, int j, int player) {
+		set(index(i, j), player);
+	}
+
+	public void set(Point p, int player) {
+		set(p.x, p.y, player);
+	}
+
+	public void setAll(int player) {
+		for (int index = 0; index < Game.CELL_COUNT; index++)
+			set(index, player);
 	}
 
 }

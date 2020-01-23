@@ -12,7 +12,7 @@ public class Game {
 	public static final int CELL_COUNT = BOARD_SIZE * BOARD_SIZE;
 	public static final int MATCH_SIZE = 4;
 
-	private final Map<BoardState, Move> cache;
+	private final Map<BoardState, Integer> cache;
 
 	private final BoardState state;
 
@@ -40,6 +40,7 @@ public class Game {
 	}
 
 	public void start() {
+		state.clear();
 		turn = 0;
 		currentPlayer = randy.nextBoolean() ? BoardState.COMPUTER : BoardState.HUMAN;
 		xPlayer = currentPlayer;
@@ -96,7 +97,7 @@ public class Game {
 		}
 		turn++;
 		currentPlayer = 3 - currentPlayer;
-		int eval = state.evaluateImmediate(0);
+		Integer eval = state.evaluateImmediate();
 		if (eval != BoardState.UNKNOWN)
 			System.out.println("gg: " + eval);
 	}
@@ -119,44 +120,59 @@ public class Game {
 	}
 
 	private Point computeMove() {
-		return computeMove(currentPlayer, BoardState.HUMAN_IMMEDIATE + turn, BoardState.COMPUTER_IMMEDIATE + turn, turn).toPoint();
-	}
-
-	private Move computeMove(int alpha, int beta, int depth, int player) {
-		BoardState canonical = new BoardState();
-		Transform inv = state.canonicalize(canonical);
-		Move move = cache.get(canonical);
-		Move best = new Move(null, BoardState.UNKNOWN);
-		if (move != null)
-			return move.withDepth(depth);
-		Point[] empty = state.getCells(BoardState.EMPTY);
-		if (empty.length == 0) {
-			move = new Move(null, state.evaluateImmediate(depth));
-			cache.put(new BoardState(state), move);
-			return move;
-		}
-		int opponent = 3 - player;
-		int value = player == BoardState.COMPUTER ? alpha : beta;
-		for (Point p : state.getCells(BoardState.EMPTY)) {
-			state.set(p, player);
-			move = computeMove(alpha, beta, depth + 1, opponent);
-			state.set(p, BoardState.EMPTY);
-
-			boolean comp = player == BoardState.COMPUTER && move.value > value;
-			boolean humn = player == BoardState.HUMAN && move.value < value;
-			if (comp || humn) {
-				value = move.value;
-				if (comp)
-					alpha = value;
-				else
-					beta = value;
-				best = move;
+		Point[] emptyCells = state.getCells(BoardState.EMPTY);
+		if (emptyCells.length == 0)
+			return null;
+		int alpha = BoardState.HUMAN_WIN;
+		int beta = BoardState.COMPUTER_WIN;
+		int nextVal;
+		Point bestCell = null;
+		for (Point emptyCell : emptyCells) {
+			state.set(emptyCell, BoardState.COMPUTER);
+			nextVal = evaluateBoard(alpha, beta, 1, BoardState.HUMAN);
+			state.set(emptyCell, BoardState.HUMAN);
+			if (nextVal > alpha) {
+				alpha = nextVal;
+				bestCell = emptyCell;
 				if (alpha >= beta)
 					break;
 			}
 		}
-		cache.put(new BoardState(canonical), best);
-		System.out.println(move);
-		return move.transform(inv);
+		return bestCell;
 	}
+
+	private int evaluateBoard(int alpha, int beta, int depth, int player) {
+		Transform inv = state.canonicalize();
+		Integer value = cache.get(state);
+		if (value != BoardState.UNKNOWN)
+			return value;
+		value = state.evaluateImmediate();
+		if (value != BoardState.UNKNOWN) {
+			cache.put(new BoardState(state), value);
+			return value;
+		}
+		boolean isComputer = player == BoardState.COMPUTER;
+		int val = isComputer ? alpha : beta;
+		int nextVal;
+		int opponent = 3 - player;
+		Point[] emptyCells = state.getCells(BoardState.EMPTY);
+		for (Point emptyCell : emptyCells) {
+			state.set(emptyCell, currentPlayer);
+			nextVal = evaluateBoard(alpha, beta, depth + 1, opponent);
+			state.set(emptyCell, BoardState.EMPTY);
+			if (isComputer ? nextVal > val : nextVal < val) {
+				val = nextVal;
+				if (isComputer)
+					alpha = val;
+				else
+					beta = val;
+				if (alpha >= beta)
+					break;
+			}
+		}
+		cache.put(new BoardState(state), val);
+		inv.apply(state);
+		return val;
+	}
+
 }

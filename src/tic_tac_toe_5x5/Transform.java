@@ -105,11 +105,7 @@ public final class Transform implements Comparable<Transform> {
 		return newState;
 	}
 
-	public Move apply(Move move) {
-		return new Move(apply(move.toPoint()), move.value);
-	}
-
-	public Point apply(Point point) {
+	private Point apply(Point point) {
 		int i = point.x;
 		int j = point.y;
 		int n = Game.BOARD_SIZE;

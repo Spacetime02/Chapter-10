@@ -218,8 +218,8 @@ class TicTacToe {
 	}
 
 	private static final boolean PRIORITIZE_IMMEDIACY = true;
-	private static final boolean ALPHA_BETA_PRUNING = false;
-	private static final boolean USE_TRANSPOSITION_TABLE = false;
+	private static final boolean ALPHA_BETA_PRUNING = true;
+	private static final boolean USE_TRANSPOSITION_TABLE = true;
 
 	// Compute static value of current position (win, draw, etc.)
 	private int positionValue(int depth) {

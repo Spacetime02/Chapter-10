@@ -5,7 +5,6 @@ import java.awt.Component;
 import java.awt.Container;
 import java.awt.Cursor;
 import java.awt.Dimension;
-import java.awt.EventQueue;
 import java.awt.FocusTraversalPolicy;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
@@ -28,150 +27,6 @@ import javax.swing.border.Border;
 
 public class GUI extends JFrame {
 
-	private static final long serialVersionUID = 1L;
-
-	private static final String TITLE = Game.BOARD_SIZE + "x" + Game.BOARD_SIZE + " Tic-Tac-Toe";
-
-	// private static final int[] BUTTON_INPUT_IDS = new int[] {KeyEvent.VK_LEFT, KeyEvent.VK_UP, KeyEvent.VK_RIGHT,
-	// KeyEvent.VK_DOWN};
-	// private static final boolean[] BUTTON_INPUT_ON_RELEASE = new boolean[] {false, false, false, false};
-
-	// private static final int BUTTON_BORDER_THICKNESS = 2;
-	private static final int BOARD_THICKNESS = 1;
-	private static final int BUTTON_SIZE = 50;
-
-	private static final Color BACKGROUND_COLOR = Color.WHITE;
-	private static final Color FOREGROUND_COLOR = Color.BLACK;
-	private static final Color BUTTON_FOCUS_COLOR = Color.ORANGE;
-	private static final Color BUTTON_HOVER_COLOR = Color.YELLOW;
-	private static final Color BUTTON_CLICK_COLOR = Color.red;
-	private static final Color BUTTON_DISABLED_COLOR = Color.GRAY;
-
-	private static final Cursor DISABLED_CURSOR = Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR);
-	private static final Cursor ENABLED_CURSOR = Cursor.getPredefinedCursor(Cursor.HAND_CURSOR);
-
-	private JPanel buttonPanel;
-
-	private final JButton[][] buttons = new JButton[Game.BOARD_SIZE][Game.BOARD_SIZE];
-	private final BoardListener[][] boardListeners = new BoardListener[Game.BOARD_SIZE][Game.BOARD_SIZE];
-
-	private JButton restartButton;
-	// private RestartListener restartListener;
-
-	private BoardFocusTraversalPolicy policy;
-
-	private Game game;
-
-	public static void main(String[] args) {
-		UIManager.put("Button.select", BUTTON_CLICK_COLOR);
-		new GUI();
-	}
-
-	public GUI() {
-		super(TITLE);
-		initUI();
-		runGame();
-	}
-
-	private void runGame() {
-		game = new Game(this);
-		while (true) {
-			game.start();
-			while (game.canDoTurn())
-				game.doTurn();
-		}
-	}
-
-	public void setState(int i, int j, int state) {
-		boardListeners[i][j].setState(state);
-	}
-
-	private void initUI() {
-		Container contentPane = getContentPane();
-		BoxLayout layout = new BoxLayout(contentPane, BoxLayout.X_AXIS);
-		contentPane.setLayout(layout);
-
-		add(Box.createHorizontalGlue());
-
-		Box yBox = new Box(BoxLayout.Y_AXIS);
-		yBox.setAlignmentX(0f);
-		yBox.add(Box.createVerticalGlue());
-		yBox.add(initButtonPanel());
-		// yBox.add(Box.createVerticalStrut(BUTTON_SIZE));
-		yBox.add(initRestartButton());
-		yBox.add(Box.createVerticalGlue());
-		add(yBox);
-
-		add(Box.createHorizontalGlue());
-
-		contentPane.setBackground(BACKGROUND_COLOR);
-
-		policy = new BoardFocusTraversalPolicy(this);
-		setFocusCycleRoot(true);
-		setFocusTraversalPolicy(policy);
-
-		setDefaultCloseOperation(EXIT_ON_CLOSE);
-		pack();
-		setVisible(true);
-		EventQueue.invokeLater(() -> System.out.println(restartButton.getSize()));
-	}
-
-	private JPanel initButtonPanel() {
-		GridLayout layout = new GridLayout(Game.BOARD_SIZE, Game.BOARD_SIZE);
-		buttonPanel = new JPanel(layout);
-		buttonPanel.setBackground(BACKGROUND_COLOR);
-		for (int i = 0; i < Game.BOARD_SIZE; i++)
-			for (int j = 0; j < Game.BOARD_SIZE; j++)
-				initBoardButton(buttonPanel, i, j);
-		Dimension size = panelSize();
-		buttonPanel.setMaximumSize(size);
-		buttonPanel.setPreferredSize(size);
-		buttonPanel.setMinimumSize(size);
-		return buttonPanel;
-	}
-
-	private void initBoardButton(JPanel panel, int i, int j) {
-		JButton button = mkButton(null, ENABLED_CURSOR);
-		BoardListener listener = new BoardListener(this/* , panel */, button, i, j);
-		button.addMouseListener(listener);
-		button.addFocusListener(listener);
-		button.addActionListener(listener);
-		button.addKeyListener(listener);
-		if (i > 0 || j > 0) {
-			Border border = BorderFactory.createMatteBorder(i > 0 ? BOARD_THICKNESS : 0, j > 0 ? BOARD_THICKNESS : 0, 0, 0, FOREGROUND_COLOR);
-			button.setBorder(border);
-		}
-		panel.add(button);
-		buttons[i][j] = button;
-		boardListeners[i][j] = listener;
-	}
-
-	private JButton initRestartButton() {
-		restartButton = mkButton(null, DISABLED_CURSOR);
-		Dimension size = new Dimension(Game.BOARD_SIZE * BUTTON_SIZE, BUTTON_SIZE);
-		restartButton.setPreferredSize(size);
-		restartButton.setMaximumSize(size);
-		restartButton.setMinimumSize(size);
-		restartButton.setAlignmentX(0.5f);
-		return restartButton;
-	}
-
-	private static Dimension panelSize() {
-		int width = Game.BOARD_SIZE * BUTTON_SIZE;
-		// int height = width + BUTTON_SIZE * 2;
-		return new Dimension(width, width);
-	}
-
-	private JButton mkButton(String text, Cursor cursor) {
-		JButton button = new JButton(text == null ? "" : text);
-		button.setBackground(BACKGROUND_COLOR);
-		button.setForeground(FOREGROUND_COLOR);
-		// button.setBorder(null);
-		button.setFocusPainted(false);
-		button.setCursor(cursor);
-		return button;
-	}
-
 	private static final class BoardFocusTraversalPolicy extends FocusTraversalPolicy {
 
 		private final GUI gui;
@@ -192,6 +47,22 @@ public class GUI extends JFrame {
 					focusable[i++] = true;
 				}
 			this.buttons[Game.CELL_COUNT] = gui.restartButton;
+		}
+
+		private int findIndex(Container aContainer, Component aComponent) throws IllegalArgumentException {
+			if (aContainer == null)
+				throw new IllegalArgumentException("aContainer is null.");
+			if (aComponent == null)
+				throw new IllegalArgumentException("aComponent is null.");
+			if (aContainer != gui)
+				throw new IllegalArgumentException("Wrong aContainer.");
+			if (!(aComponent instanceof JButton))
+				throw new IllegalArgumentException("Wrong aComponent.");
+			JButton button = (JButton) aComponent;
+			int index = indexOf(button);
+			if (index < 0)
+				throw new IllegalArgumentException("Wrong aComponent.");
+			return index;
 		}
 
 		@Override
@@ -219,6 +90,11 @@ public class GUI extends JFrame {
 		}
 
 		@Override
+		public Component getDefaultComponent(Container aContainer) throws IllegalArgumentException {
+			return getFirstComponent(aContainer);
+		}
+
+		@Override
 		public Component getFirstComponent(Container aContainer) throws IllegalArgumentException {
 			if (aContainer == null)
 				throw new IllegalArgumentException();
@@ -236,27 +112,6 @@ public class GUI extends JFrame {
 				if (focusable[i])
 					return buttons[i];
 			return null;
-		}
-
-		@Override
-		public Component getDefaultComponent(Container aContainer) throws IllegalArgumentException {
-			return getFirstComponent(aContainer);
-		}
-
-		private int findIndex(Container aContainer, Component aComponent) throws IllegalArgumentException {
-			if (aContainer == null)
-				throw new IllegalArgumentException("aContainer is null.");
-			if (aComponent == null)
-				throw new IllegalArgumentException("aComponent is null.");
-			if (aContainer != gui)
-				throw new IllegalArgumentException("Wrong aContainer.");
-			if (!(aComponent instanceof JButton))
-				throw new IllegalArgumentException("Wrong aComponent.");
-			JButton button = (JButton) aComponent;
-			int index = indexOf(button);
-			if (index < 0)
-				throw new IllegalArgumentException("Wrong aComponent.");
-			return index;
 		}
 
 		private int indexOf(JButton button) {
@@ -278,13 +133,11 @@ public class GUI extends JFrame {
 		private final JButton button;
 		private final JButton[][] buttons;
 		private final GUI gui;
-		// private final JPanel panel;
 
 		private boolean hover = false;
 
-		public BoardListener(GUI gui/* , JPanel panel */, JButton button, int i, int j) {
+		public BoardListener(GUI gui, JButton button, int i, int j) {
 			this.gui = gui;
-			// this.panel = panel;
 			this.buttons = gui.buttons;
 			this.button = button;
 			this.i = i;
@@ -293,57 +146,11 @@ public class GUI extends JFrame {
 			this.state = BoardState.EMPTY;
 		}
 
-		public void setState(int state) {
-			if (this.state == state)
-				return;
-			boolean empty = state == BoardState.EMPTY;
-			boolean[] focusable = gui.policy.focusable;
-			focusable[index] = empty;
-			button.setFocusable(empty);
-			if (gui.game.getCurrent() == BoardState.HUMAN)
-				button.transferFocus();
-			button.setBackground(empty ? BACKGROUND_COLOR : BUTTON_DISABLED_COLOR);
-			if (empty) {
-				button.setText("");
-				button.setCursor(ENABLED_CURSOR);
-			} else {
-				if (state == gui.game.getX())
-					button.setText("X");
-				else if (state == gui.game.getO())
-					button.setText("O");
-				button.setCursor(DISABLED_CURSOR);
-			}
-		}
-
 		@Override
 		public void actionPerformed(ActionEvent e) {
 			if (gui.policy.focusable[index]) {
 				gui.game.queueMove(i, j);
 			}
-		}
-
-		@Override
-		public void mouseClicked(MouseEvent e) {}
-
-		@Override
-		public void mousePressed(MouseEvent e) {}
-
-		@Override
-		public void mouseReleased(MouseEvent e) {}
-
-		@Override
-		public void mouseEntered(MouseEvent e) {
-			System.out.println(button.isFocusable());
-			if (!button.hasFocus() && gui.policy.focusable[index])
-				button.setBackground(BUTTON_HOVER_COLOR);
-			hover = true;
-		}
-
-		@Override
-		public void mouseExited(MouseEvent e) {
-			if (!button.hasFocus())
-				button.setBackground(gui.policy.focusable[index] ? BACKGROUND_COLOR : BUTTON_DISABLED_COLOR);
-			hover = false;
 		}
 
 		@Override
@@ -356,9 +163,6 @@ public class GUI extends JFrame {
 		public void focusLost(FocusEvent e) {
 			button.setBackground(gui.policy.focusable[index] ? hover ? BUTTON_HOVER_COLOR : BACKGROUND_COLOR : BUTTON_DISABLED_COLOR);
 		}
-
-		@Override
-		public void keyTyped(KeyEvent e) {}
 
 		@Override
 		public void keyPressed(KeyEvent e) {
@@ -406,5 +210,198 @@ public class GUI extends JFrame {
 		@Override
 		public void keyReleased(KeyEvent e) {}
 
+		@Override
+		public void keyTyped(KeyEvent e) {}
+
+		@Override
+		public void mouseClicked(MouseEvent e) {}
+
+		@Override
+		public void mouseEntered(MouseEvent e) {
+			// System.out.println("")
+			if (!button.hasFocus() && gui.policy.focusable[index])
+				button.setBackground(BUTTON_HOVER_COLOR);
+			hover = true;
+		}
+
+		@Override
+		public void mouseExited(MouseEvent e) {
+			if (!button.hasFocus())
+				button.setBackground(gui.policy.focusable[index] ? BACKGROUND_COLOR : BUTTON_DISABLED_COLOR);
+			hover = false;
+		}
+
+		@Override
+		public void mousePressed(MouseEvent e) {}
+
+		@Override
+		public void mouseReleased(MouseEvent e) {}
+
+		public void setState(int state) {
+			if (this.state == state)
+				return;
+			boolean empty = state == BoardState.EMPTY;
+			boolean[] focusable = gui.policy.focusable;
+			focusable[index] = empty;
+			button.setFocusable(empty);
+			if (gui.game.getCurrent() == BoardState.HUMAN)
+				button.transferFocus();
+			button.setBackground(empty ? BACKGROUND_COLOR : BUTTON_DISABLED_COLOR);
+			if (empty) {
+				button.setText("");
+				button.setCursor(ENABLED_CURSOR);
+			} else {
+				if (state == gui.game.getX())
+					button.setText("X");
+				else if (state == gui.game.getO())
+					button.setText("O");
+				button.setCursor(DISABLED_CURSOR);
+			}
+		}
+
+	}
+
+	// private static final int[] BUTTON_INPUT_IDS = new int[] {KeyEvent.VK_LEFT, KeyEvent.VK_UP, KeyEvent.VK_RIGHT,
+	// KeyEvent.VK_DOWN};
+	// private static final boolean[] BUTTON_INPUT_ON_RELEASE = new boolean[] {false, false, false, false};
+
+	private static final long serialVersionUID = 1L;
+	private static final String TITLE = Game.BOARD_SIZE + "x" + Game.BOARD_SIZE + " Tic-Tac-Toe";
+
+	// private static final int BUTTON_BORDER_THICKNESS = 2;
+	private static final int BOARD_THICKNESS = 1;
+	private static final int BUTTON_SIZE = 50;
+	private static final Color BACKGROUND_COLOR = Color.WHITE;
+	private static final Color FOREGROUND_COLOR = Color.BLACK;
+	private static final Color BUTTON_FOCUS_COLOR = Color.ORANGE;
+	private static final Color BUTTON_HOVER_COLOR = Color.YELLOW;
+
+	private static final Color BUTTON_CLICK_COLOR = Color.red;
+	private static final Color BUTTON_DISABLED_COLOR = Color.GRAY;
+
+	private static final Cursor DISABLED_CURSOR = Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR);
+
+	private static final Cursor ENABLED_CURSOR = Cursor.getPredefinedCursor(Cursor.HAND_CURSOR);
+
+	public static void main(String[] args) {
+		UIManager.put("Button.select", BUTTON_CLICK_COLOR);
+		new GUI();
+	}
+
+	private static Dimension panelSize() {
+		int width = Game.BOARD_SIZE * BUTTON_SIZE;
+		// int height = width + BUTTON_SIZE * 2;
+		return new Dimension(width, width);
+	}
+
+	private JPanel buttonPanel;
+
+	private final JButton[][] buttons = new JButton[Game.BOARD_SIZE][Game.BOARD_SIZE];
+
+	private final BoardListener[][] boardListeners = new BoardListener[Game.BOARD_SIZE][Game.BOARD_SIZE];
+
+	private JButton restartButton;
+	// private RestartListener restartListener;
+
+	private BoardFocusTraversalPolicy policy;
+
+	private Game game;
+
+	public GUI() {
+		super(TITLE);
+		initUI();
+		runGame();
+	}
+
+	private void initBoardButton(JPanel panel, int i, int j) {
+		JButton button = mkButton(null, ENABLED_CURSOR);
+		BoardListener listener = new BoardListener(this/* , panel */, button, i, j);
+		button.addMouseListener(listener);
+		button.addFocusListener(listener);
+		button.addActionListener(listener);
+		button.addKeyListener(listener);
+		if (i > 0 || j > 0) {
+			Border border = BorderFactory.createMatteBorder(i > 0 ? BOARD_THICKNESS : 0, j > 0 ? BOARD_THICKNESS : 0, 0, 0, FOREGROUND_COLOR);
+			button.setBorder(border);
+		}
+		panel.add(button);
+		buttons[i][j] = button;
+		boardListeners[i][j] = listener;
+	}
+
+	private JPanel initButtonPanel() {
+		GridLayout layout = new GridLayout(Game.BOARD_SIZE, Game.BOARD_SIZE);
+		buttonPanel = new JPanel(layout);
+		buttonPanel.setBackground(BACKGROUND_COLOR);
+		for (int i = 0; i < Game.BOARD_SIZE; i++)
+			for (int j = 0; j < Game.BOARD_SIZE; j++)
+				initBoardButton(buttonPanel, i, j);
+		Dimension size = panelSize();
+		buttonPanel.setMaximumSize(size);
+		buttonPanel.setPreferredSize(size);
+		buttonPanel.setMinimumSize(size);
+		return buttonPanel;
+	}
+
+	private JButton initRestartButton() {
+		restartButton = mkButton(null, DISABLED_CURSOR);
+		Dimension size = new Dimension(Game.BOARD_SIZE * BUTTON_SIZE, BUTTON_SIZE);
+		restartButton.setPreferredSize(size);
+		restartButton.setMaximumSize(size);
+		restartButton.setMinimumSize(size);
+		restartButton.setAlignmentX(0.5f);
+		return restartButton;
+	}
+
+	private void initUI() {
+		Container contentPane = getContentPane();
+		BoxLayout layout = new BoxLayout(contentPane, BoxLayout.X_AXIS);
+		contentPane.setLayout(layout);
+
+		add(Box.createHorizontalGlue());
+
+		Box yBox = new Box(BoxLayout.Y_AXIS);
+		yBox.setAlignmentX(0f);
+		yBox.add(Box.createVerticalGlue());
+		yBox.add(initButtonPanel());
+		yBox.add(Box.createVerticalStrut(BUTTON_SIZE));
+		yBox.add(initRestartButton());
+		yBox.add(Box.createVerticalGlue());
+		add(yBox);
+
+		add(Box.createHorizontalGlue());
+
+		contentPane.setBackground(BACKGROUND_COLOR);
+
+		policy = new BoardFocusTraversalPolicy(this);
+		setFocusCycleRoot(true);
+		setFocusTraversalPolicy(policy);
+
+		setDefaultCloseOperation(EXIT_ON_CLOSE);
+		pack();
+		setVisible(true);
+	}
+
+	private JButton mkButton(String text, Cursor cursor) {
+		JButton button = new JButton(text == null ? "" : text);
+		button.setBackground(BACKGROUND_COLOR);
+		button.setForeground(FOREGROUND_COLOR);
+		// button.setBorder(null);
+		button.setFocusPainted(false);
+		button.setCursor(cursor);
+		return button;
+	}
+
+	private void runGame() {
+		game = new Game(this);
+		while (true) {
+			game.start();
+			while (game.canDoTurn())
+				game.doTurn();
+		}
+	}
+
+	public void setState(int i, int j, int state) {
+		boardListeners[i][j].setState(state);
 	}
 }
