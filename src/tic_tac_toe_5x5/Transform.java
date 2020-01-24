@@ -6,6 +6,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 
 public final class Transform implements Comparable<Transform> {
 
@@ -108,7 +109,7 @@ public final class Transform implements Comparable<Transform> {
 	private Point apply(Point point) {
 		int i = point.x;
 		int j = point.y;
-		int n = Game.BOARD_SIZE;
+		int n = Game.BOARD_SIZE - 1;
 		switch (transform) {
 			case CLOCKWISE_0:
 				return new Point(i, j);
@@ -129,6 +130,23 @@ public final class Transform implements Comparable<Transform> {
 			default:
 				throw new Error("If you see this message, I am terribly sorry. It should not be possible");
 		}
+	}
+
+	// tester
+	public static void main(String[] args) {
+		BoardState state = new BoardState();
+		Random randy = new Random();
+		for (int index = 0; index < Game.CELL_COUNT; index++)
+			state.set(index, randy.nextInt(3));
+		BoardState transformed;
+		for (int t = 0; t < 8; t++) {
+			Transform tf = Transform.get(t);
+			transformed = tf.apply(state);
+			transformed = tf.invert().apply(transformed);
+			if (!transformed.equals(state))
+				System.out.println("Fail " + t);
+		}
+		System.out.println("Done");
 	}
 
 	@Override

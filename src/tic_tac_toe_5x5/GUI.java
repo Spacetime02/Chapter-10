@@ -218,7 +218,8 @@ public class GUI extends JFrame {
 
 		@Override
 		public void mouseEntered(MouseEvent e) {
-			// System.out.println("")
+			// if (LOG)
+			// System.out.println(gui.game.get(i, j));
 			if (!button.hasFocus() && gui.policy.focusable[index])
 				button.setBackground(BUTTON_HOVER_COLOR);
 			hover = true;
@@ -261,14 +262,12 @@ public class GUI extends JFrame {
 
 	}
 
-	// private static final int[] BUTTON_INPUT_IDS = new int[] {KeyEvent.VK_LEFT, KeyEvent.VK_UP, KeyEvent.VK_RIGHT,
-	// KeyEvent.VK_DOWN};
-	// private static final boolean[] BUTTON_INPUT_ON_RELEASE = new boolean[] {false, false, false, false};
-
 	private static final long serialVersionUID = 1L;
-	private static final String TITLE = Game.BOARD_SIZE + "x" + Game.BOARD_SIZE + " Tic-Tac-Toe";
 
-	// private static final int BUTTON_BORDER_THICKNESS = 2;
+	public static final boolean LOG = false;
+
+	public static final String TITLE = Game.BOARD_SIZE + "x" + Game.BOARD_SIZE + " Tic-Tac-Toe";
+
 	private static final int BOARD_THICKNESS = 1;
 	private static final int BUTTON_SIZE = 50;
 	private static final Color BACKGROUND_COLOR = Color.WHITE;
@@ -289,7 +288,7 @@ public class GUI extends JFrame {
 	}
 
 	private static Dimension panelSize() {
-		int width = Game.BOARD_SIZE * BUTTON_SIZE;
+		int width = Game.BOARD_SIZE * BUTTON_SIZE - 1;
 		// int height = width + BUTTON_SIZE * 2;
 		return new Dimension(width, width);
 	}
@@ -386,7 +385,7 @@ public class GUI extends JFrame {
 		JButton button = new JButton(text == null ? "" : text);
 		button.setBackground(BACKGROUND_COLOR);
 		button.setForeground(FOREGROUND_COLOR);
-		// button.setBorder(null);
+		button.setBorder(null);
 		button.setFocusPainted(false);
 		button.setCursor(cursor);
 		return button;

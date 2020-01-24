@@ -59,6 +59,7 @@ final class BoardState implements Comparable<BoardState> {
 		return canonicalize(this);
 	}
 
+	// TODO add transformations to compress table.
 	/**
 	 * @return The inverse of the canonicalizing {@code Transform}.
 	 */
@@ -76,6 +77,7 @@ final class BoardState implements Comparable<BoardState> {
 		}
 		dest.set(maxState);
 		return maxTransform.invert();
+		// return Transform.get(Transform.CLOCKWISE_0);
 	}
 
 	public void clear() {
@@ -134,7 +136,7 @@ final class BoardState implements Comparable<BoardState> {
 				if ((state = equalOrEmpty(set2)) != EMPTY)
 					return stateToValue(state, depth);
 			}
-		System.out.println(depth);
+		// System.out.println(depth);
 		return depth == Game.CELL_COUNT ? TIE : UNKNOWN;
 	}
 
@@ -183,6 +185,8 @@ final class BoardState implements Comparable<BoardState> {
 	}
 
 	public void set(int i, int j, int player) {
+		if (i >= Game.BOARD_SIZE || j >= Game.BOARD_SIZE)
+			throw new IllegalArgumentException();
 		set(index(i, j), player);
 	}
 
@@ -193,6 +197,41 @@ final class BoardState implements Comparable<BoardState> {
 	public void setAll(int player) {
 		for (int index = 0; index < Game.CELL_COUNT; index++)
 			set(index, player);
+	}
+
+	// @Override
+	// public String toString() {
+	// int side = Game.BOARD_SIZE * 2;
+	// StringBuilder builder = new StringBuilder((side - 1) * side - 1);
+	// char[] names = { ' ', 'C', 'H' };
+	// for (int i = 0; i < Game.BOARD_SIZE; i++) {
+	// for (int j = 0; j < Game.BOARD_SIZE; j++) {
+	// builder.append(names[get(i, j)]);
+	// if (j < Game.BOARD_SIZE - 1)
+	// builder.append('|');
+	// }
+	// if (i < Game.BOARD_SIZE - 1)
+	// builder.append('\n');
+	// if (i < Game.BOARD_SIZE - 1) {
+	// for (int j = 1; j < side; j++)
+	// builder.append('-');
+	// builder.append('\n');
+	// }
+	// }
+	// return builder.toString();
+	// }
+
+	@Override
+	public String toString() {
+		char[] names = { '_', 'C', 'H' };
+		StringBuilder builder = new StringBuilder();
+		for (int i = 0; i < Game.BOARD_SIZE; i++) {
+			for (int j = 0; j < Game.BOARD_SIZE; j++)
+				builder.append(names[get(i, j)]);
+			if (i < Game.BOARD_SIZE - 1)
+				builder.append('\n');
+		}
+		return builder.toString();
 	}
 
 }

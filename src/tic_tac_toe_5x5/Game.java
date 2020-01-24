@@ -8,9 +8,11 @@ import java.util.concurrent.LinkedBlockingQueue;
 
 public class Game {
 
-	public static final int BOARD_SIZE = 5;
+	public static final int BOARD_SIZE = 3;
 	public static final int CELL_COUNT = BOARD_SIZE * BOARD_SIZE;
-	public static final int MATCH_SIZE = 4;
+	public static final int MATCH_SIZE = 3;
+
+	private static final int MAX_CACHE_DEPTH = 20;
 
 	private final Map<BoardState, Integer> cache;
 
@@ -119,6 +121,18 @@ public class Game {
 		return in;
 	}
 
+	private void pt(Point cell, int player, int depth) {
+		if (GUI.LOG) {
+			char[] names = new char[] { 'E', 'C', 'H' };
+			for (int i = 0; i < depth; i++)
+				System.out.print('>');
+			System.out.println("Test x" + cell.x + " y" + cell.y + " d" + depth + " " + names[player]);
+			System.out.println(state);
+			System.out.println();
+		}
+
+	}
+
 	private Point computeMove() {
 		Point[] emptyCells = state.getCells(BoardState.EMPTY);
 		if (emptyCells.length == 0)
@@ -127,10 +141,14 @@ public class Game {
 		int beta = BoardState.COMPUTER_WIN;
 		int nextVal;
 		Point bestCell = null;
+		int i = 0;
 		for (Point emptyCell : emptyCells) {
+			gui.setTitle(GUI.TITLE + " (Processing " + ++i + "/" + emptyCells.length + ")");
 			state.set(emptyCell, BoardState.COMPUTER);
-			nextVal = evaluateBoard(alpha, beta, 1, BoardState.HUMAN);
-			state.set(emptyCell, BoardState.HUMAN);
+			pt(emptyCell, BoardState.COMPUTER, 0);
+			nextVal = evaluateBoard(alpha, beta, turn + 1, BoardState.HUMAN);
+			state.set(emptyCell, BoardState.EMPTY);
+			pt(emptyCell, BoardState.EMPTY, 0);
 			if (nextVal > alpha) {
 				alpha = nextVal;
 				bestCell = emptyCell;
@@ -142,12 +160,16 @@ public class Game {
 	}
 
 	private int evaluateBoard(int alpha, int beta, int depth, int player) {
+		boolean useCache = depth < MAX_CACHE_DEPTH;
 		Transform inv = state.canonicalize();
-		Integer value = cache.get(state);
-		if (value != BoardState.UNKNOWN)
-			return value;
+		Integer value;
+		if (useCache) {
+			value = cache.get(state);
+			if (value != BoardState.UNKNOWN)
+				return value;
+		}
 		value = state.evaluateImmediate();
-		if (value != BoardState.UNKNOWN) {
+		if (useCache && value != BoardState.UNKNOWN) {
 			cache.put(new BoardState(state), value);
 			return value;
 		}
@@ -156,10 +178,18 @@ public class Game {
 		int nextVal;
 		int opponent = 3 - player;
 		Point[] emptyCells = state.getCells(BoardState.EMPTY);
+		int i = 0;
 		for (Point emptyCell : emptyCells) {
-			state.set(emptyCell, currentPlayer);
+			if (depth < 10) {
+				for (int j = turn; j < depth; j++)
+					System.out.print('-');
+				System.out.println(++i);
+			}
+			state.set(emptyCell, player);
+			pt(emptyCell, player, depth);
 			nextVal = evaluateBoard(alpha, beta, depth + 1, opponent);
 			state.set(emptyCell, BoardState.EMPTY);
+			pt(emptyCell, BoardState.EMPTY, depth);
 			if (isComputer ? nextVal > val : nextVal < val) {
 				val = nextVal;
 				if (isComputer)
@@ -170,7 +200,8 @@ public class Game {
 					break;
 			}
 		}
-		cache.put(new BoardState(state), val);
+		if (useCache)
+			cache.put(new BoardState(state), val);
 		inv.apply(state);
 		return val;
 	}
