@@ -21,6 +21,7 @@ import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JFrame;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.UIManager;
 import javax.swing.border.Border;
@@ -146,11 +147,16 @@ public class GUI extends JFrame {
 			this.state = BoardState.EMPTY;
 		}
 
+		// public void reset() {
+		// button.setText("");
+		// button.setBackground(BACKGROUND_COLOR);
+		// gui.policy.focusable[index] = true;
+		// }
+
 		@Override
 		public void actionPerformed(ActionEvent e) {
-			if (gui.policy.focusable[index]) {
+			if (gui.policy.focusable[index])
 				gui.game.queueMove(i, j);
-			}
 		}
 
 		@Override
@@ -218,7 +224,6 @@ public class GUI extends JFrame {
 
 		@Override
 		public void mouseEntered(MouseEvent e) {
-			// if (LOG)
 			// System.out.println(gui.game.get(i, j));
 			if (!button.hasFocus() && gui.policy.focusable[index])
 				button.setBackground(BUTTON_HOVER_COLOR);
@@ -241,6 +246,7 @@ public class GUI extends JFrame {
 		public void setState(int state) {
 			if (this.state == state)
 				return;
+			this.state = state;
 			boolean empty = state == BoardState.EMPTY;
 			boolean[] focusable = gui.policy.focusable;
 			focusable[index] = empty;
@@ -289,25 +295,21 @@ public class GUI extends JFrame {
 
 	private static Dimension panelSize() {
 		int width = Game.BOARD_SIZE * BUTTON_SIZE - 1;
-		// int height = width + BUTTON_SIZE * 2;
 		return new Dimension(width, width);
 	}
 
 	private JPanel buttonPanel;
 
 	private final JButton[][] buttons = new JButton[Game.BOARD_SIZE][Game.BOARD_SIZE];
-
 	private final BoardListener[][] boardListeners = new BoardListener[Game.BOARD_SIZE][Game.BOARD_SIZE];
 
 	private JButton restartButton;
-	// private RestartListener restartListener;
 
 	private BoardFocusTraversalPolicy policy;
 
 	private Game game;
 
 	public GUI() {
-		super(TITLE);
 		initUI();
 		runGame();
 	}
@@ -342,15 +344,15 @@ public class GUI extends JFrame {
 		return buttonPanel;
 	}
 
-	private JButton initRestartButton() {
-		restartButton = mkButton(null, DISABLED_CURSOR);
-		Dimension size = new Dimension(Game.BOARD_SIZE * BUTTON_SIZE, BUTTON_SIZE);
-		restartButton.setPreferredSize(size);
-		restartButton.setMaximumSize(size);
-		restartButton.setMinimumSize(size);
-		restartButton.setAlignmentX(0.5f);
-		return restartButton;
-	}
+	// private JButton initRestartButton() {
+	// restartButton = mkButton(null, DISABLED_CURSOR);
+	// Dimension size = new Dimension(Game.BOARD_SIZE * BUTTON_SIZE, BUTTON_SIZE);
+	// restartButton.setPreferredSize(size);
+	// restartButton.setMaximumSize(size);
+	// restartButton.setMinimumSize(size);
+	// restartButton.setAlignmentX(0.5f);
+	// return restartButton;
+	// }
 
 	private void initUI() {
 		Container contentPane = getContentPane();
@@ -363,8 +365,6 @@ public class GUI extends JFrame {
 		yBox.setAlignmentX(0f);
 		yBox.add(Box.createVerticalGlue());
 		yBox.add(initButtonPanel());
-		yBox.add(Box.createVerticalStrut(BUTTON_SIZE));
-		yBox.add(initRestartButton());
 		yBox.add(Box.createVerticalGlue());
 		add(yBox);
 
@@ -378,6 +378,7 @@ public class GUI extends JFrame {
 
 		setDefaultCloseOperation(EXIT_ON_CLOSE);
 		pack();
+		setExtendedState(MAXIMIZED_BOTH);
 		setVisible(true);
 	}
 
@@ -394,9 +395,21 @@ public class GUI extends JFrame {
 	private void runGame() {
 		game = new Game(this);
 		while (true) {
+			setTitle(TITLE + " - " + (game.getCurrent() == game.getX() ? 'X' : 'O'));
 			game.start();
-			while (game.canDoTurn())
+			Integer value;
+			while ((value = game.evaluateImmediate()) == null)
 				game.doTurn();
+			if (value < 0)
+				JOptionPane.showMessageDialog(this, "You Won!", "Victory!", JOptionPane.PLAIN_MESSAGE);
+			else if (value == 0)
+				JOptionPane.showMessageDialog(this, "You Tied!", "Tie!", JOptionPane.PLAIN_MESSAGE);
+			else
+				JOptionPane.showMessageDialog(this, "You Lost!", "Defeat!", JOptionPane.PLAIN_MESSAGE);
+			for (BoardListener[] row : boardListeners)
+				for (BoardListener listener : row)
+					listener.setState(BoardState.EMPTY);
+			buttons[0][0].requestFocusInWindow();
 		}
 	}
 

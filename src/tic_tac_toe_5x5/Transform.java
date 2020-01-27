@@ -96,8 +96,8 @@ public final class Transform implements Comparable<Transform> {
 	}
 
 	public BoardState apply(BoardState state) {
-		if (transform == CLOCKWISE_0)
-			return new BoardState(state);
+//		if (transform == CLOCKWISE_0)
+//			return new BoardState(state);
 		BoardState newState = new BoardState();
 		int n = Game.BOARD_SIZE;
 		for (Point p = new Point(); p.x < n; p.x++)
@@ -139,11 +139,13 @@ public final class Transform implements Comparable<Transform> {
 		for (int index = 0; index < Game.CELL_COUNT; index++)
 			state.set(index, randy.nextInt(3));
 		BoardState transformed;
+		BoardState restored;
 		for (int t = 0; t < 8; t++) {
 			Transform tf = Transform.get(t);
 			transformed = tf.apply(state);
-			transformed = tf.invert().apply(transformed);
-			if (!transformed.equals(state))
+			restored = tf.invert().apply(transformed);
+			System.out.println(tf + "\n\nState:\n" + state + "\n\nTransformed:\n" + transformed + "\n\nRestored:\n" + restored + "\n\n\n");
+			if (!restored.equals(state))
 				System.out.println("Fail " + t);
 		}
 		System.out.println("Done");
@@ -157,6 +159,11 @@ public final class Transform implements Comparable<Transform> {
 	@Override
 	public int compareTo(Transform o) throws NullPointerException {
 		return Integer.compare(this.transform, o.transform);
+	}
+
+	@Override
+	public String toString() {
+		return "T_" + Integer.toHexString(transform);
 	}
 
 }

@@ -11,11 +11,17 @@ final class BoardState implements Comparable<BoardState> {
 	public static final int COMPUTER = 1;
 	public static final int HUMAN    = 2;
 
-	public static final Integer UNKNOWN            =  null;
+	public static final Integer UNKNOWN      =  null;
 	public static final Integer HUMAN_WIN    = -Game.CELL_COUNT - 1;
-	public static final Integer TIE                =  0;
+	public static final Integer TIE          =  0;
 	public static final Integer COMPUTER_WIN =  Game.CELL_COUNT + 1;
 	// @formatter:on
+
+	public BitSet getData() {
+		BitSet set = new BitSet(Game.CELL_COUNT * 2);
+		set.or(data);
+		return set;
+	}
 
 	private static int equalOrEmpty(int[] cells) {
 		int val = cells[0];
@@ -64,15 +70,18 @@ final class BoardState implements Comparable<BoardState> {
 	 * @return The inverse of the canonicalizing {@code Transform}.
 	 */
 	public Transform canonicalize(BoardState dest) {
+		BoardState og = new BoardState(this);
 		if (dest == null)
 			dest = this;
 		BoardState maxState = null;
 		Transform maxTransform = null;
 		for (Transform tf : Transform.TRANSFORMS) {
 			BoardState state = tf.apply(this);
+			if (!og.equals(this))
+				throw new Error();
 			if (maxState == null || state.compareTo(maxState) > 0) {
 				maxTransform = tf;
-				maxState = state;
+				maxState = new BoardState(state);
 			}
 		}
 		dest.set(maxState);
@@ -99,7 +108,13 @@ final class BoardState implements Comparable<BoardState> {
 	public boolean equals(Object obj) {
 		if (!(obj instanceof BoardState) || obj == null)
 			return false;
-		return data.equals(((BoardState) obj).data);
+		BoardState other = (BoardState) obj;
+		if (data.size() != other.data.size())
+			return false;
+		for (int i = 0; i < Game.CELL_COUNT * 2; i++)
+			if (data.get(i) != other.data.get(i))
+				return false;
+		return true;
 	}
 
 	public Integer evaluateImmediate() {
@@ -114,10 +129,12 @@ final class BoardState implements Comparable<BoardState> {
 					// -
 					set1[k] = get(i, j + k);
 					// |
-					set2[k] = get(j, i + k);
+					set2[k] = get(j + k, i);
 				}
+				// System.out.println("- " + Arrays.toString(set1));
 				if ((state = equalOrEmpty(set1)) != EMPTY)
 					return stateToValue(state, depth);
+				// System.out.println("| " + Arrays.toString(set2));
 				if ((state = equalOrEmpty(set2)) != EMPTY)
 					return stateToValue(state, depth);
 			}
@@ -232,6 +249,15 @@ final class BoardState implements Comparable<BoardState> {
 				builder.append('\n');
 		}
 		return builder.toString();
+	}
+
+	// tester
+	public static void mainn(String[] args) {
+		BoardState state = new BoardState();
+		for (int i = 0; i < 3; i++)
+			state.set(i, 0, COMPUTER);
+		System.out.println(state);
+		System.out.println(state.evaluateImmediate());
 	}
 
 }
