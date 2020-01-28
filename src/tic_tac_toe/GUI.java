@@ -1,4 +1,4 @@
-package tic_tac_toe_5x5;
+package tic_tac_toe;
 
 import java.awt.Color;
 import java.awt.Component;
@@ -32,22 +32,19 @@ public class GUI extends JFrame {
 
 		private final GUI gui;
 
-		private final int len;
 		private final JButton[] buttons;
 		private final boolean[] focusable;
 
 		public BoardFocusTraversalPolicy(GUI gui) {
 			this.gui = gui;
-			len = Game.CELL_COUNT + 1;
-			buttons = new JButton[len];
-			focusable = new boolean[len];
+			buttons = new JButton[Game.CELL_COUNT];
+			focusable = new boolean[Game.CELL_COUNT];
 			int i = 0;
 			for (JButton[] row : gui.buttons)
 				for (JButton button : row) {
 					this.buttons[i] = button;
 					focusable[i++] = true;
 				}
-			this.buttons[Game.CELL_COUNT] = gui.restartButton;
 		}
 
 		private int findIndex(Container aContainer, Component aComponent) throws IllegalArgumentException {
@@ -69,9 +66,9 @@ public class GUI extends JFrame {
 		@Override
 		public Component getComponentAfter(Container aContainer, Component aComponent) throws IllegalArgumentException {
 			int index = findIndex(aContainer, aComponent);
-			int max = len + index;
+			int max = Game.CELL_COUNT + index;
 			for (int i = index + 1, iModLen; i <= max; i++) {
-				iModLen = i % len;
+				iModLen = i % Game.CELL_COUNT;
 				if (focusable[iModLen])
 					return buttons[iModLen];
 			}
@@ -81,9 +78,9 @@ public class GUI extends JFrame {
 		@Override
 		public Component getComponentBefore(Container aContainer, Component aComponent) throws IllegalArgumentException {
 			int index = findIndex(aContainer, aComponent);
-			int max = len + index;
+			int max = Game.CELL_COUNT + index;
 			for (int i = max - 1, iModLen; i >= index; i--) {
-				iModLen = i % len;
+				iModLen = i % Game.CELL_COUNT;
 				if (focusable[iModLen])
 					return buttons[iModLen];
 			}
@@ -99,7 +96,7 @@ public class GUI extends JFrame {
 		public Component getFirstComponent(Container aContainer) throws IllegalArgumentException {
 			if (aContainer == null)
 				throw new IllegalArgumentException();
-			for (int i = 0; i < len; i++)
+			for (int i = 0; i < Game.CELL_COUNT; i++)
 				if (focusable[i])
 					return buttons[i];
 			return null;
@@ -109,14 +106,14 @@ public class GUI extends JFrame {
 		public Component getLastComponent(Container aContainer) throws IllegalArgumentException {
 			if (aContainer == null)
 				throw new IllegalArgumentException();
-			for (int i = len - 1; i >= 0; i--)
+			for (int i = Game.CELL_COUNT - 1; i >= 0; i--)
 				if (focusable[i])
 					return buttons[i];
 			return null;
 		}
 
 		private int indexOf(JButton button) {
-			for (int i = 0; i < len; i++)
+			for (int i = 0; i < Game.CELL_COUNT; i++)
 				if (buttons[i] == button)
 					return i;
 			return -1;
@@ -146,12 +143,6 @@ public class GUI extends JFrame {
 			this.index = BoardState.index(i, j);
 			this.state = BoardState.EMPTY;
 		}
-
-		// public void reset() {
-		// button.setText("");
-		// button.setBackground(BACKGROUND_COLOR);
-		// gui.policy.focusable[index] = true;
-		// }
 
 		@Override
 		public void actionPerformed(ActionEvent e) {
@@ -274,7 +265,7 @@ public class GUI extends JFrame {
 
 	public static final String TITLE = Game.BOARD_SIZE + "x" + Game.BOARD_SIZE + " Tic-Tac-Toe";
 
-	private static final int BOARD_THICKNESS = 1;
+	private static final int BOARD_THICKNESS = 3;
 	private static final int BUTTON_SIZE = 50;
 	private static final Color BACKGROUND_COLOR = Color.WHITE;
 	private static final Color FOREGROUND_COLOR = Color.BLACK;
@@ -303,8 +294,6 @@ public class GUI extends JFrame {
 	private final JButton[][] buttons = new JButton[Game.BOARD_SIZE][Game.BOARD_SIZE];
 	private final BoardListener[][] boardListeners = new BoardListener[Game.BOARD_SIZE][Game.BOARD_SIZE];
 
-	private JButton restartButton;
-
 	private BoardFocusTraversalPolicy policy;
 
 	private Game game;
@@ -316,7 +305,7 @@ public class GUI extends JFrame {
 
 	private void initBoardButton(JPanel panel, int i, int j) {
 		JButton button = mkButton(null, ENABLED_CURSOR);
-		BoardListener listener = new BoardListener(this/* , panel */, button, i, j);
+		BoardListener listener = new BoardListener(this, button, i, j);
 		button.addMouseListener(listener);
 		button.addFocusListener(listener);
 		button.addActionListener(listener);
@@ -395,14 +384,14 @@ public class GUI extends JFrame {
 	private void runGame() {
 		game = new Game(this);
 		while (true) {
-			setTitle(TITLE + " - " + (game.getCurrent() == game.getX() ? 'X' : 'O'));
+			setTitle(TITLE + " - " + (BoardState.HUMAN == game.getX() ? 'X' : 'O'));
 			game.start();
 			Integer value;
-			while ((value = game.evaluateImmediate()) == null)
+			while ((value = game.evaluateImmediate()) == BoardState.UNKNOWN)
 				game.doTurn();
-			if (value < 0)
+			if (value < BoardState.TIE)
 				JOptionPane.showMessageDialog(this, "You Won!", "Victory!", JOptionPane.PLAIN_MESSAGE);
-			else if (value == 0)
+			else if (value == BoardState.TIE)
 				JOptionPane.showMessageDialog(this, "You Tied!", "Tie!", JOptionPane.PLAIN_MESSAGE);
 			else
 				JOptionPane.showMessageDialog(this, "You Lost!", "Defeat!", JOptionPane.PLAIN_MESSAGE);

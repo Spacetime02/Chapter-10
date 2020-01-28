@@ -1,4 +1,4 @@
-package tic_tac_toe_5x5;
+package tic_tac_toe;
 
 import java.awt.Point;
 import java.util.Arrays;

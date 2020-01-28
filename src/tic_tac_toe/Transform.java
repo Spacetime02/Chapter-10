@@ -1,4 +1,4 @@
-package tic_tac_toe_5x5;
+package tic_tac_toe;
 
 import java.awt.Point;
 import java.util.ArrayList;
@@ -133,7 +133,7 @@ public final class Transform implements Comparable<Transform> {
 	}
 
 	// tester
-	public static void main(String[] args) {
+	public static void mainn(String[] args) {
 		BoardState state = new BoardState();
 		Random randy = new Random();
 		for (int index = 0; index < Game.CELL_COUNT; index++)

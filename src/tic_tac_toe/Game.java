@@ -1,4 +1,4 @@
-package tic_tac_toe_5x5;
+package tic_tac_toe;
 
 import java.awt.Point;
 import java.io.PrintStream;
@@ -111,6 +111,8 @@ public class Game {
 
 	private static class Logger extends Thread {
 
+		private static final boolean ENABLE = false;
+
 		private static final BlockingQueue<String> ERR = new LinkedBlockingQueue<>();
 		private static final ThreadGroup GROUP = new ThreadGroup("loggers");
 
@@ -137,7 +139,9 @@ public class Game {
 		public void run() {
 			while (true)
 				try {
-					stream.print(queue.take());
+					String item = queue.take();
+					if (ENABLE)
+						stream.print(item);
 				}
 				catch (InterruptedException e) {
 					InterruptedException ie = new InterruptedException("Logger " + name + " was interrupted.");
@@ -148,9 +152,9 @@ public class Game {
 
 	}
 
-	public static final int BOARD_SIZE = 5;
+	public static final int BOARD_SIZE = 3;
 	public static final int CELL_COUNT = BOARD_SIZE * BOARD_SIZE;
-	public static final int MATCH_SIZE = 4;
+	public static final int MATCH_SIZE = 3;
 
 	private static final int MAX_CACHE_DEPTH = 20;
 
@@ -191,7 +195,7 @@ public class Game {
 
 	private final GUI gui;
 
-	private final LinkedBlockingQueue<Point> inQueue;
+	private final BlockingQueue<Point> inQueue;
 
 	private int xPlayer;
 	private int oPlayer;
@@ -321,13 +325,14 @@ public class Game {
 
 	private Point readIn() {
 		Point in = null;
-		while (in == null)
+		do
 			try {
 				in = inQueue.take();
 			}
 			catch (InterruptedException e) {
 				print(Logger.ERR, getStackTrace(e));
 			}
+		while (in == null);
 		return in;
 	}
 
