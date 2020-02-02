@@ -58,14 +58,14 @@ public class WordListLoader extends Loader<Trie> {
 	}
 
 	@Override
-	protected Trie load(Readable source, IntBiConsumer progressHandler) {
+	protected Trie load(Readable source) {
 		try (Scanner sc = new Scanner(source)) {
 			Trie trie = new Trie('A', 'Z');
 			int num = sc.nextInt();
-			progressHandler.accept(num, 0);
+			reportProgress(num, 0);
 			for (int i = 0; i < num;) {
 				trie.add(sc.next());
-				progressHandler.accept(num, ++i);
+				reportProgress(num, ++i);
 			}
 			return trie;
 		}

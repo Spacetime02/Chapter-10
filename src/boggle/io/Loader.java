@@ -15,15 +15,20 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 
 import boggle.util.function.IntBiConsumer;
+import boggle.util.tuple.IntPair;
 
 public abstract class Loader<T> {
 
 	private final Readable src;
+	private final BlockingQueue<IntPair> progressQueue;
 
 	public Loader(Readable r) {
 		src = r;
+		progressQueue = new LinkedBlockingQueue<IntPair>();
 	}
 
 	public Loader(InputStream is) {
@@ -62,10 +67,15 @@ public abstract class Loader<T> {
 		this(urlCon.getInputStream());
 	}
 
-	protected abstract T load(Readable source, IntBiConsumer progressHandler);
+	protected final void reportProgress(int num, int index) {
+		progressQueue.add(new IntPair(num, index));
+	}
+
+	protected abstract T load(Readable source);
 
 	public T get(IntBiConsumer progressHandler) {
-		return load(src, progressHandler);
+		
+		return load(src);
 	}
 
 }
