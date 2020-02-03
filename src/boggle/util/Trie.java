@@ -1,7 +1,9 @@
 package boggle.util;
 
+import java.io.PrintStream;
 import java.lang.reflect.Array;
 import java.util.AbstractCollection;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Deque;
 import java.util.Iterator;
@@ -9,7 +11,6 @@ import java.util.LinkedList;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.NoSuchElementException;
-import java.util.Objects;
 import java.util.function.Predicate;
 
 public class Trie extends AbstractCollection<String> implements Collection<String> {
@@ -49,15 +50,6 @@ public class Trie extends AbstractCollection<String> implements Collection<Strin
 			multiplicity = 0;
 			children = new Node[degree];
 		}
-
-		// @Override
-		// protected Node clone() {
-		// Node node = new Node(children.length);
-		// for (int i = 0; i < children.length; i++)
-		// if (children[i] != null)
-		// node.children[i] = children[i].clone();
-		// return node;
-		// }
 
 	}
 
@@ -99,9 +91,9 @@ public class Trie extends AbstractCollection<String> implements Collection<Strin
 	}
 
 	@Override
-	public Object[] toArray() {
+	public String[] toArray() {
 		Iterator<String> iter = iterator();
-		Object[] arr = new Object[size];
+		String[] arr = new String[size];
 		for (int i = 0; i < size; i++)
 			arr[i] = iter.next();
 		return arr;
@@ -251,7 +243,7 @@ public class Trie extends AbstractCollection<String> implements Collection<Strin
 		int len = str.length();
 		Node node = root, child;
 		for (int i = 0; i < len; i++) {
-			child = node.children[str.charAt(i) + lowerBound];
+			child = node.children[str.charAt(i) - lowerBound];
 			if (child == null)
 				return null;
 			node = child;
@@ -263,7 +255,7 @@ public class Trie extends AbstractCollection<String> implements Collection<Strin
 		int len = str.length(), idx;
 		Node node = root, child;
 		for (int i = 0; i < len; i++) {
-			idx = str.charAt(i) + lowerBound;
+			idx = str.charAt(i) - lowerBound;
 			child = node.children[idx];
 			if (child == null)
 				node = node.children[idx] = new Node(degree);
@@ -291,10 +283,10 @@ public class Trie extends AbstractCollection<String> implements Collection<Strin
 				nodes[i - 1].children[str.charAt(i) + lowerBound] = null;
 	}
 
-	public class UniqueIterator implements Iterator<String> {
+	private class UniqueIterator implements Iterator<String> {
 
 		private final Deque<Node> nodeStack;
-		private final Deque<Character> charStack;
+		private final Deque<String> strStack;
 
 		private int index;
 		private int multiplicity;
@@ -302,15 +294,15 @@ public class Trie extends AbstractCollection<String> implements Collection<Strin
 
 		private UniqueIterator() {
 			nodeStack = new LinkedList<>();
-			charStack = new LinkedList<>();
+			strStack = new LinkedList<>();
 			nodeStack.push(root);
-			charStack.push('\0');
+			strStack.push("");
 			index = 0;
 		}
 
 		@Override
 		public boolean hasNext() {
-			return index < size;
+			return index < uniqueSize;
 		}
 
 		@Override
@@ -319,29 +311,39 @@ public class Trie extends AbstractCollection<String> implements Collection<Strin
 				throw new NoSuchElementException();
 			index++;
 			Node node = nodeStack.pop(), child;
-			char current = charStack.pop();
+			String current = strStack.pop();
 			while (node.multiplicity == 0) {
 				for (int i = degree - 1; i >= 0; i--) {
 					child = node.children[i];
 					if (child != null) {
 						nodeStack.push(child);
-						charStack.push((char) (i + lowerBound));
+						strStack.push(current + (char) (i + lowerBound));
+						System.out.println("pushed " + strStack.peek());
 					}
 				}
+				System.out.println();
+				System.out.println(Arrays.toString(nodeStack.stream().mapToInt(n -> n.multiplicity).toArray()));
+				// System.out.println(nodeStack.size());
+				System.out.println(strStack);
 				node = nodeStack.pop();
-				current = charStack.pop();
+				current = strStack.pop();
 			}
-			multiplicity = node.multiplicity;
-			if (node == root)
-				return lastVal = "";
-			int i = charStack.size();
-			char[] arr = new char[i];
-			Iterator<Character> iter = charStack.iterator();
-			do {
-				arr[--i] = current;
-				current = iter.next();
-			} while (i > 0);
-			return lastVal = String.valueOf(arr);
+			System.out.println(current);
+			// System.out.println();
+			// System.out.println(nodeStack.size());
+			// System.out.println(strStack);
+			System.out.println("m" + (multiplicity = node.multiplicity));
+			return lastVal = current;
+			// if (node == root)
+			// return lastVal = "";
+			// int i = strStack.size();
+			// char[] arr = new char[i];
+			// Iterator<Character> iter = strStack.iterator();
+			// while (i > 0) {
+			// arr[--i] = current;
+			// current = iter.next();
+			// }
+			// return lastVal = String.valueOf(arr);
 		}
 
 		@Override
@@ -370,7 +372,7 @@ public class Trie extends AbstractCollection<String> implements Collection<Strin
 
 	}
 
-	public class MultiplicitousIterator extends UniqueIterator {
+	private class MultiplicitousIterator extends UniqueIterator {
 
 		@Override
 		public boolean hasNext() {
@@ -381,11 +383,10 @@ public class Trie extends AbstractCollection<String> implements Collection<Strin
 		public String next() {
 			if (!hasNext())
 				throw new NoSuchElementException();
-			else if (multiplicity() > 0) {
-				decMultiplicity();
-				return repeat();
-			} else
-				return super.next();
+			if (multiplicity() == 0)
+				super.next();
+			decMultiplicity();
+			return repeat();
 		}
 
 		@Override
@@ -394,6 +395,29 @@ public class Trie extends AbstractCollection<String> implements Collection<Strin
 				throw new IllegalStateException();
 			removeAll(repeat());
 			clearRepeat();
+		}
+
+	}
+
+	public void printStructure(PrintStream stream) {
+		// stream.println(uniqueSize);
+		Iterator<String> iter = uniqueIterator();
+		while (iter.hasNext())
+			iter.next();
+		// stream.println(iter.next());
+		// stream.println(Arrays.toString(toArray()));
+		// printStructure(stream, root, 0, "");
+	}
+
+	private void printStructure(PrintStream stream, Node node, int depth, String str) {
+		for (int i = 0; i < depth; i++)
+			stream.print("|");
+		stream.printf("%1d %s%n", node.multiplicity, str);
+		depth++;
+		for (int i = 0; i < degree; i++) {
+			Node child = node.children[i];
+			if (child != null)
+				printStructure(stream, child, depth, str + (char) (i + lowerBound));
 		}
 
 	}

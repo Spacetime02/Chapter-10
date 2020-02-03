@@ -15,20 +15,22 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Optional;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
+import boggle.main.Main;
 import boggle.util.function.IntBiConsumer;
 import boggle.util.tuple.IntPair;
 
 public abstract class Loader<T> {
 
 	private final Readable src;
-	private final BlockingQueue<IntPair> progressQueue;
+	private final BlockingQueue<Optional<IntPair>> progressQueue;
 
 	public Loader(Readable r) {
 		src = r;
-		progressQueue = new LinkedBlockingQueue<IntPair>();
+		progressQueue = new LinkedBlockingQueue<>();
 	}
 
 	public Loader(InputStream is) {
@@ -68,14 +70,60 @@ public abstract class Loader<T> {
 	}
 
 	protected final void reportProgress(int num, int index) {
-		progressQueue.add(new IntPair(num, index));
+		progressQueue.add(Optional.of(new IntPair(num, index)));
 	}
 
 	protected abstract T load(Readable source);
 
 	public T get(IntBiConsumer progressHandler) {
-		
-		return load(src);
+		ProgressHandler ph = new ProgressHandler(progressHandler);
+		ph.start();
+		T loaded = load(src);
+		progressQueue.add(Optional.empty());
+		try {
+			ph.join();
+			if (ph.exception != null)
+				throw ph.exception;
+		}
+		catch (InterruptedException e) {
+			if (Main.DEBUG)
+				e.printStackTrace(System.err);
+			return null;
+		}
+
+		return loaded;
+	}
+
+	private class ProgressHandler extends Thread {
+
+		private final IntBiConsumer handler;
+		private InterruptedException exception;
+
+		private ProgressHandler(IntBiConsumer handler) {
+			this.handler = handler;
+		}
+
+		@Override
+		public void run() {
+			try {
+				handle();
+				exception = null;
+			}
+			catch (InterruptedException exc) {
+				exception = exc;
+			}
+		}
+
+		private void handle() throws InterruptedException {
+			Optional<IntPair> opt = progressQueue.take();
+			IntPair pair;
+			while (opt.isPresent()) {
+				pair = opt.orElseThrow();
+				handler.accept(pair.value1, pair.value2);
+				opt = progressQueue.take();
+			}
+		}
+
 	}
 
 }
