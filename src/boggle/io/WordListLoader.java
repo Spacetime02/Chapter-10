@@ -12,10 +12,10 @@ import java.nio.file.Path;
 import java.util.Scanner;
 import java.util.function.BiConsumer;
 
-import boggle.util.Trie;
+import boggle.util.OldTrie;
 import boggle.util.function.IntBiConsumer;
 
-public class WordListLoader extends Loader<Trie> {
+public class WordListLoader extends LoaderOld<OldTrie> {
 
 	public WordListLoader(byte[] bytes) {
 		super(bytes);
@@ -58,9 +58,9 @@ public class WordListLoader extends Loader<Trie> {
 	}
 
 	@Override
-	protected Trie load(Readable source) {
+	protected OldTrie load(Readable source) {
 		try (Scanner sc = new Scanner(source)) {
-			Trie trie = new Trie('A', 'Z');
+			OldTrie trie = new OldTrie('A', 'Z');
 			int num = sc.nextInt();
 			reportProgress(num, 0);
 			for (int i = 0; i < num;) {

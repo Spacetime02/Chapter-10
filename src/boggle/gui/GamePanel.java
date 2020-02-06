@@ -1,13 +1,13 @@
 package boggle.gui;
 
 import java.awt.BorderLayout;
+import java.awt.GridBagLayout;
 
-import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 
-import boggle.util.Trie;
+import boggle.util.OldTrie;
 
 public class GamePanel extends JPanel {
 
@@ -21,24 +21,14 @@ public class GamePanel extends JPanel {
 	private void initUI() {
 		setLayout(new BorderLayout());
 
-		String[] data = new String[1000];
-		for (int i = 0; i < 1000; i++) {
-			data[i] = "";
-			for (int j = i; j < 1000; j++)
-				data[i] += "-";
-		}
+		WordList list = new WordList();
+		JScrollPane listParent = new JScrollPane(list);
 
-		Trie testTrie = new Trie('A', 'Z');
-		testTrie.add("HELLOWORLD");
-		testTrie.add("YEET");
-		testTrie.add("BIPPITYBOPPITYBOO", 5);
-		testTrie.add("EGGYOLKSARETHEWAYFORME", 2);
+		GridPanel gridPanel = new GridPanel();
+		JPanel gridParent = new JPanel(new GridBagLayout());
+		gridParent.add(gridPanel);
 
-		JList<String> list = new WordList(testTrie);
-
-		JPanel gridPanel = new JPanel();
-
-		JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, true, gridPanel, new JScrollPane(list));
+		JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, true, gridParent, listParent);
 		splitPane.setDividerLocation(0.5);
 
 		// @formatter:off
@@ -46,6 +36,17 @@ public class GamePanel extends JPanel {
 				splitPane
 				);
 		// @formatter:on
+
+		OldTrie testTrie = new OldTrie('A', 'Z');
+		testTrie.add("HELLOWORLD");
+		testTrie.add("YEET");
+		testTrie.add("BIPPITYBOPPITYBOO", 5);
+		testTrie.add("EGGYOLKSARETHEWAYFORME", 2);
+		list.reset(testTrie);
+	}
+
+	public void reset(OldTrie words, char[][] grid) {
+
 	}
 
 }

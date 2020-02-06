@@ -68,7 +68,7 @@ public class GUI extends JFrame {
 	// private JPanel mainMenu;
 
 	// private char[][] grid;
-	// private Trie words;
+	// private OldTrie words;
 
 	public GUI() {
 		super("Boggle");

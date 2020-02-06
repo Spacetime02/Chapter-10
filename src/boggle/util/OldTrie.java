@@ -3,17 +3,17 @@ package boggle.util;
 import java.io.PrintStream;
 import java.lang.reflect.Array;
 import java.util.AbstractCollection;
+import java.util.ArrayDeque;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Deque;
 import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.NoSuchElementException;
 import java.util.function.Predicate;
 
-public class Trie extends AbstractCollection<String> implements Collection<String> {
+public class OldTrie extends AbstractCollection<String> implements Collection<String> {
 
 	private final char lowerBound;
 	private final int degree;
@@ -21,21 +21,24 @@ public class Trie extends AbstractCollection<String> implements Collection<Strin
 
 	private int size;
 	private int uniqueSize;
+	private int depth;
 
-	public Trie(char low, char high) {
+	public OldTrie(char low, char high) {
 		lowerBound = low;
 		degree = high - low + 1;
 		root = new Node(degree);
 		size = 0;
 		uniqueSize = 0;
+		depth = 0;
 	}
 
-	public Trie(Trie other) {
+	public OldTrie(OldTrie other) {
 		lowerBound = other.lowerBound;
 		degree = other.degree;
 		root = new Node(degree);
 		size = 0;
 		uniqueSize = 0;
+		depth = 0;
 		UniqueIterator iter = other.new UniqueIterator();
 		while (iter.hasNext())
 			add(iter.next(), iter.multiplicity());
@@ -118,6 +121,8 @@ public class Trie extends AbstractCollection<String> implements Collection<Strin
 			return remove(str, -multiplicity);
 		else if (multiplicity == 0)
 			return false;
+		if (str.length() > depth)
+			depth = str.length();
 		Node n = mkNode(str);
 		if (n.multiplicity == 0)
 			uniqueSize++;
@@ -167,7 +172,7 @@ public class Trie extends AbstractCollection<String> implements Collection<Strin
 		return true;
 	}
 
-	public boolean addAll(Trie trie) {
+	public boolean addAll(OldTrie trie) {
 		boolean modified = false;
 		UniqueIterator iter = trie.new UniqueIterator();
 		while (iter.hasNext())
@@ -293,8 +298,8 @@ public class Trie extends AbstractCollection<String> implements Collection<Strin
 		private String lastVal;
 
 		private UniqueIterator() {
-			nodeStack = new LinkedList<>();
-			strStack = new LinkedList<>();
+			nodeStack = new ArrayDeque<>(depth);
+			strStack = new ArrayDeque<>(depth);
 			nodeStack.push(root);
 			strStack.push("");
 			index = 0;
@@ -398,6 +403,14 @@ public class Trie extends AbstractCollection<String> implements Collection<Strin
 		}
 
 	}
+
+//	public static class DescendantView extends Collection<String> {
+//
+//		private DescendantView(int index) {
+//			
+//		}
+//
+//	}
 
 	public void printStructure(PrintStream stream) {
 		// stream.println(uniqueSize);

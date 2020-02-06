@@ -14,7 +14,7 @@ import java.util.regex.Pattern;
 
 import boggle.util.function.IntBiConsumer;
 
-public class GridLoader extends Loader<char[][]> {
+public class GridLoader extends LoaderOld<char[][]> {
 
 	private static final Pattern DELIM = Pattern.compile("\\p{javaWhitespace}");
 
