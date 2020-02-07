@@ -8,10 +8,10 @@ import java.io.IOException;
 import java.io.StringReader;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Scanner;
 import java.util.regex.Pattern;
-
-import boggle.util.OldTrie;
 
 public class Loader {
 
@@ -19,7 +19,7 @@ public class Loader {
 
 	private static final Pattern GRID_DELIM = Pattern.compile("[^A-Za-z]*");
 
-	private OldTrie words = null;
+	private List<String> words = null;
 	private char[][] grid = null;
 
 	public Loader(Readable r) {
@@ -42,7 +42,7 @@ public class Loader {
 		this(Files.newBufferedReader(path));
 	}
 
-	public OldTrie getWords() {
+	public List<String> getWords() {
 		if (words == null)
 			throw new IllegalStateException();
 		return words;
@@ -57,17 +57,19 @@ public class Loader {
 	public void load() {
 		try (Scanner sc = new Scanner(source)) {
 			int wordCount = sc.nextInt();
-			int gridWidth = sc.nextInt();
-			int gridHeight = sc.nextInt();
-			words = new OldTrie('A', 'Z');
-			grid = new char[gridWidth][gridHeight];
+			int wordDim = sc.nextInt();
+			words = new ArrayList<>(wordCount);
 			String word;
 			int multiplicity;
-			for (int i = 0; i < wordCount; i++) {
-				word = sc.next();
+			for (int i = 0; i < wordDim; i++) {
+				word = sc.next().toUpperCase();
 				multiplicity = sc.nextInt();
-				words.add(word, multiplicity);
+				for (int j = 0; j < multiplicity; j++)
+					words.add(word);
 			}
+			int gridWidth = sc.nextInt();
+			int gridHeight = sc.nextInt();
+			grid = new char[gridWidth][gridHeight];
 			sc.useDelimiter(GRID_DELIM);
 			for (int i = 0; i < gridWidth; i++)
 				for (int j = 0; j < gridHeight; j++)
