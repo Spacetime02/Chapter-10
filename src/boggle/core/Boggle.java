@@ -8,7 +8,10 @@ public class Boggle {
 	private List<String> words;
 
 	public Boggle(char[][] grid, List<String> words) {
-
+		this.grid = grid;
+		this.words = words;
 	}
+	
+	public 
 
 }
