@@ -20,7 +20,7 @@ public interface Iterator<AnyType> extends java.util.Iterator<AnyType> {
 	AnyType next();
 
 	/**
-	 * Remove the last item returned by next. Can only be called once after next.
+	 * Remove the second item returned by next. Can only be called once after next.
 	 */
 	void remove();
 }

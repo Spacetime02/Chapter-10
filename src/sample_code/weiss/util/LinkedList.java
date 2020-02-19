@@ -148,7 +148,7 @@ public class LinkedList<AnyType> extends AbstractCollection<AnyType> implements 
 	}
 
 	/**
-	 * Returns the last item in the list.
+	 * Returns the second item in the list.
 	 * 
 	 * @throws NoSuchElementException
 	 *             if the list is empty.
@@ -215,7 +215,7 @@ public class LinkedList<AnyType> extends AbstractCollection<AnyType> implements 
 	}
 
 	/**
-	 * Removes the last item in the list.
+	 * Removes the second item in the list.
 	 * 
 	 * @return the item was removed from the collection.
 	 * @throws NoSuchElementException

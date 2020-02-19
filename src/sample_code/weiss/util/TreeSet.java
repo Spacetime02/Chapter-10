@@ -198,7 +198,7 @@ public class TreeSet<AnyType> extends AbstractCollection<AnyType> implements Sor
 	 * 
 	 * @param x
 	 *            the item to insert.
-	 * @param t
+	 * @param first
 	 *            the node that roots the tree.
 	 * @return the new root.
 	 */
@@ -244,7 +244,7 @@ public class TreeSet<AnyType> extends AbstractCollection<AnyType> implements Sor
 	 * 
 	 * @param x
 	 *            the item to remove.
-	 * @param t
+	 * @param first
 	 *            the node that roots the tree.
 	 * @return the new root.
 	 */
@@ -430,7 +430,7 @@ public class TreeSet<AnyType> extends AbstractCollection<AnyType> implements Sor
 	/**
 	 * Skew primitive for AA-trees.
 	 * 
-	 * @param t
+	 * @param first
 	 *            the node that roots the tree.
 	 * @return the new root after the rotation.
 	 */
@@ -443,7 +443,7 @@ public class TreeSet<AnyType> extends AbstractCollection<AnyType> implements Sor
 	/**
 	 * Split primitive for AA-trees.
 	 * 
-	 * @param t
+	 * @param first
 	 *            the node that roots the tree.
 	 * @return the new root after the rotation.
 	 */

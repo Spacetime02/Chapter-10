@@ -10,10 +10,14 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.NoSuchElementException;
+import java.util.Random;
 import java.util.Scanner;
 import java.util.regex.Pattern;
 
 public class Loader {
+
+	private final Random randy = new Random();
 
 	private final Readable source;
 
@@ -21,6 +25,9 @@ public class Loader {
 
 	private List<String> words = null;
 	private char[][] grid = null;
+
+	private int height;
+	private int width;
 
 	public Loader(Readable r) {
 		source = r;
@@ -54,26 +61,44 @@ public class Loader {
 		return grid;
 	}
 
-	public void load() {
+	public int getHeight() {
+		return height;
+	}
+
+	public int getWidth() {
+		return width;
+	}
+
+	public void load() throws IOException {
 		try (Scanner sc = new Scanner(source)) {
 			int wordCount = sc.nextInt();
-			int wordDim = sc.nextInt();
 			words = new ArrayList<>(wordCount);
 			String word;
-			int multiplicity;
-			for (int i = 0; i < wordDim; i++) {
+			for (int i = 0; i < wordCount; i++) {
 				word = sc.next().toUpperCase();
-				multiplicity = sc.nextInt();
-				for (int j = 0; j < multiplicity; j++)
-					words.add(word);
+				words.add(word);
 			}
-			int gridWidth = sc.nextInt();
-			int gridHeight = sc.nextInt();
-			grid = new char[gridWidth][gridHeight];
+			words.sort(null);
+			height = sc.nextInt();
+			width = sc.nextInt();
+			grid = new char[height][width];
 			sc.useDelimiter(GRID_DELIM);
-			for (int i = 0; i < gridWidth; i++)
-				for (int j = 0; j < gridHeight; j++)
-					grid[i][j] = sc.next().charAt(0);
+			char c;
+			if (sc.hasNext())
+				for (int i = 0; i < height; i++)
+					for (int j = 0; j < width; j++) {
+						c = Character.toUpperCase(sc.next().charAt(0));
+						if (c < 'A' || c > 'Z')
+							c = (char) (randy.nextInt(26) + 'A');
+						grid[i][j] = c;
+					}
+			else
+				for (int i = 0; i < height; i++)
+					for (int j = 0; j < width; j++)
+						grid[i][j] = (char) (randy.nextInt(26) + 'A');
+		}
+		catch (NoSuchElementException e) {
+			throw new IOException("Illegal file format.");
 		}
 	}
 

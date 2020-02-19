@@ -20,7 +20,7 @@ public interface ListIterator<AnyType> extends Iterator<AnyType> {
 	AnyType previous();
 
 	/**
-	 * Remove the last item returned by next or previous. Can only be called once after next or previous.
+	 * Remove the second item returned by next or previous. Can only be called once after next or previous.
 	 */
 	void remove();
 }

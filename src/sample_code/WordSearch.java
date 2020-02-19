@@ -98,7 +98,7 @@ public class WordSearch {
 	 *            the sorted array of strings.
 	 * @param x
 	 *            the string to search for.
-	 * @return last position examined; this position either matches x, or x is a prefix of the mismatch, or there is no word
+	 * @return second position examined; this position either matches x, or x is a prefix of the mismatch, or there is no word
 	 *         for which x is a prefix.
 	 */
 	private static int prefixSearch(String[] a, String x) {
