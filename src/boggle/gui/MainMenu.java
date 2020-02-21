@@ -82,7 +82,7 @@ class MainMenu extends JPanel {
 
 		@Override
 		public void actionPerformed(ActionEvent e) {
-			gui.showLevelSelectMenu();
+			gui.showGamePanel();
 		}
 
 	}

@@ -48,16 +48,18 @@ class GamePanel extends JPanel {
 
 	public GamePanel(GUI gui) {
 		super(true);
-		initUI();
+		initUI(gui);
 	}
 
-	private void initUI() {
+	private void initUI(GUI gui) {
 		setLayout(new BorderLayout());
 
 		list = new JList<String>();
 		JScrollPane listScroll = new JScrollPane(list);
+		
+//		JSplitPane splitPane = new JSplitPane();
 
-		gridPanel = new GridPanel();
+		gridPanel = new GridPanel(gui.getContentPane());
 		JPanel gridParent = new JPanel(new GridBagLayout());
 		gridParent.setBackground(Color.WHITE);
 		gridParent.add(gridPanel);
@@ -94,11 +96,11 @@ class GamePanel extends JPanel {
 		});
 	}
 
-	void setup(char[][] grid, int height, int width, Collection<String> words) {
+	void setup(char[][] grid, int height, int width, Collection<String> words, String fileName) {
 		this.height = height;
 		this.width = width;
 		list.setListData(words.toArray(new String[words.size()]));
-		gridPanel.setGrid(grid, height, width);
+		gridPanel.setGrid(grid, height, width, true, fileName);
 		height = grid.length;
 		width = grid[0].length;
 		boggle = new Boggle(grid, words);
@@ -152,11 +154,12 @@ class GamePanel extends JPanel {
 			public void valueChanged(ListSelectionEvent e) {
 				List<Integer> iList = new ArrayList<>();
 				List<Integer> jList = new ArrayList<>();
-				int first = e.getFirstIndex();
-				int last = e.getLastIndex();
+				// int first = e.getFirstIndex();
+				// int last = e.getLastIndex();
 				ListModel<String> model = list.getModel();
 				boolean[][] highlight = new boolean[height][width];
-				for (int m = first; m <= last; m++) {
+				int len = model.getSize();
+				for (int m = 0; m <= len; m++) {
 					if (list.isSelectedIndex(m)) {
 						Integer index = solution.get(model.getElementAt(m));
 						if (index != null) {

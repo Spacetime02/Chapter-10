@@ -123,7 +123,7 @@ public class GUI extends JFrame {
 
 	// void showMainMenu() {}
 
-	void showLevelSelectMenu() {
+	void showGamePanel() {
 		JFileChooser chooser;
 		try {
 			File file = new File(getClass().getProtectionDomain().getCodeSource().getLocation().toURI());
@@ -149,23 +149,16 @@ public class GUI extends JFrame {
 		if (chooser.showOpenDialog(this) != JFileChooser.APPROVE_OPTION)
 			return;
 		try {
-			Loader loader = new Loader(chooser.getSelectedFile());
+			File file = chooser.getSelectedFile();
+			Loader loader = new Loader(file);
 			loader.load();
-			gamePanel.setup(loader.getGrid(), loader.getHeight(), loader.getWidth(), loader.getWords());
-			((CardLayout) getContentPane().getLayout()).show(getContentPane(), "gamePanel");
+			gamePanel.setup(loader.getGrid(), loader.getHeight(), loader.getWidth(), loader.getWords(), file.getName());
 			// Boggle boggle = new Boggle(loader.getGrid(), loader.getWords());
 		}
 		catch (IOException e) {
 			JOptionPane.showMessageDialog(this, "Unable to open file. Please try again.", "Error opening file", JOptionPane.ERROR_MESSAGE);
 			return;
 		}
-	}
-
-	// void showSettingsMenu() {}
-
-	void showGamePanel() {
-		Container cPane = getContentPane();
-		((CardLayout) cPane.getLayout()).show(cPane, "gamePanel");
 	}
 
 	static Box.Filler hGlue() {
