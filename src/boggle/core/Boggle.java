@@ -12,7 +12,7 @@ public class Boggle {
 	private static final char[] EMPTY_CHAR_ARR = {};
 	private static final int[] EMPTY_INT_ARR = {};
 
-	private static final int[][] ADJ = { { -1, -1 }, { -1, 0 }, { -1, 1 }, { 0, -1 }, { 0, 1 }, { 1, -1 }, { 1, 0 }, { 1, 1 } };
+	private static final int[][] ADJ = { { -1, 0 }, { 0, -1 }, { 0, 1 }, { 1, 0 }};
 
 	private final int height;
 	private final int width;
