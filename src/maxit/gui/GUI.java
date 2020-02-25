@@ -1,38 +1,88 @@
 package maxit.gui;
 
 import java.awt.CardLayout;
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.Container;
 import java.awt.Dimension;
+import java.awt.Font;
+import java.util.HashMap;
+import java.util.Map;
 
 import javax.swing.Box;
 import javax.swing.BoxLayout;
+import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JSpinner;
 import javax.swing.SpinnerNumberModel;
 
+import boggle.util.tuple.Pair;
+
 public class GUI extends JFrame {
 
 	private static final long serialVersionUID = 1L;
 
+	private static final Map<String, Pair<Font, Map<Integer, Map<Float, Font>>>> FONT_CACHE = new HashMap<>();
+	private static final Font TITLE_FONT = getFont(Font.MONOSPACED, Font.BOLD, 64f);
+
+	static Font getFont(String name, int style, float size) {
+		Pair<Font, Map<Integer, Map<Float, Font>>> basedFont = FONT_CACHE.get(name);
+		if (basedFont == null)
+			FONT_CACHE.put(name, basedFont = new Pair<>(new Font(name, 0, 1), new HashMap<>()));
+		Font base = basedFont.first;
+		Map<Integer, Map<Float, Font>> namedFont = basedFont.second;
+		Map<Float, Font> styledFont = namedFont.get(style);
+		if (styledFont == null)
+			namedFont.put(style, styledFont = new HashMap<>());
+		Font font = styledFont.get(size);
+		if (font == null)
+			styledFont.put(size, font = base.deriveFont(style, size));
+		return font;
+	}
+
+	private final CardLayout layout;
+
 	public GUI() {
 		super("MAXIT");
-		setLayout(new CardLayout());
+		layout = new CardLayout();
+		initUI();
+	}
+
+	private void initUI() {
+		setLayout(layout);
 
 		JPanel sizeSelect = new JPanel();
 		vLayout(sizeSelect);
+		sizeSelect.setBackground(Color.WHITE);
+
+		JLabel title = new JLabel("MAXIT");
+		title.setFont(TITLE_FONT);
 
 		JLabel label = new JLabel("Grid size:");
+		label.setFont(getFont(Font.MONOSPACED, Font.PLAIN, label.getFont().getSize2D()));
+		label.setMaximumSize(label.getPreferredSize());
 
 		JSpinner spinner = new JSpinner(new SpinnerNumberModel(5, 1, null, 1));
+		JSpinner.NumberEditor editor = (JSpinner.NumberEditor) spinner.getEditor();
+		editor.get.setBorder(null);
+		((JSpinner.NumberEditor) spinner.getEditor()).getTextField().setColumns(3);
+
+		spinner.setFont(getFont(Font.MONOSPACED, Font.PLAIN, spinner.getFont().getSize2D()));
+		spinner.setMaximumSize(spinner.getPreferredSize());
 
 		// @formatter:off
 		setup(
 				sizeSelect,
 				vGlue(),
-				setup(
+				hBox(
+						hGlue(),
+						title,
+						hGlue()
+						),
+//				vGlue(),
+				hBox(
 						hGlue(),
 						label,
 						spinner,
@@ -43,6 +93,7 @@ public class GUI extends JFrame {
 		// @formatter:on
 
 		add(sizeSelect, "sizeSelect");
+		layout.show(getContentPane(), "sizeSelect");
 
 		pack();
 		setVisible(true);
