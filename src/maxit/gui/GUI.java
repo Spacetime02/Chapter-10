@@ -4,28 +4,37 @@ import java.awt.CardLayout;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Container;
+import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
+import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JSpinner;
+import javax.swing.JTextField;
 import javax.swing.SpinnerNumberModel;
 
-import boggle.util.tuple.Pair;
+import maxit.util.tuple.Pair;
 
 public class GUI extends JFrame {
 
 	private static final long serialVersionUID = 1L;
 
+	static final Color DEEP_SKY_BLUE = new Color(0, 191, 255);
+
+	private static final Cursor HAND_CURSOR = Cursor.getPredefinedCursor(Cursor.HAND_CURSOR);
+
 	private static final Map<String, Pair<Font, Map<Integer, Map<Float, Font>>>> FONT_CACHE = new HashMap<>();
-	private static final Font TITLE_FONT = getFont(Font.MONOSPACED, Font.BOLD, 64f);
+	private static final Font TITLE_FONT = getFont(Font.MONOSPACED, Font.BOLD, 96f);
+	private static final Font NORMAL_FONT = getFont(Font.MONOSPACED, Font.PLAIN, 20f);
 
 	static Font getFont(String name, int style, float size) {
 		Pair<Font, Map<Integer, Map<Float, Font>>> basedFont = FONT_CACHE.get(name);
@@ -59,18 +68,45 @@ public class GUI extends JFrame {
 
 		JLabel title = new JLabel("MAXIT");
 		title.setFont(TITLE_FONT);
+		title.setForeground(DEEP_SKY_BLUE);
 
-		JLabel label = new JLabel("Grid size:");
-		label.setFont(getFont(Font.MONOSPACED, Font.PLAIN, label.getFont().getSize2D()));
+		JLabel label = new JLabel("Grid Size:");
+		label.setFont(NORMAL_FONT);
 		label.setMaximumSize(label.getPreferredSize());
 
 		JSpinner spinner = new JSpinner(new SpinnerNumberModel(5, 1, null, 1));
-		JSpinner.NumberEditor editor = (JSpinner.NumberEditor) spinner.getEditor();
-		editor.get.setBorder(null);
-		((JSpinner.NumberEditor) spinner.getEditor()).getTextField().setColumns(3);
 
-		spinner.setFont(getFont(Font.MONOSPACED, Font.PLAIN, spinner.getFont().getSize2D()));
+		spinner.setFont(NORMAL_FONT);
 		spinner.setMaximumSize(spinner.getPreferredSize());
+
+		JComponent editor = (JSpinner.NumberEditor) spinner.getEditor();
+		JTextField spinnerField = (JTextField) editor.getComponent(0);
+		JButton incButton = (JButton) spinner.getComponent(0);
+		JButton decButton = (JButton) spinner.getComponent(1);
+
+		spinner.setBorder(null);
+
+		editor.setBorder(null);
+
+		spinnerField.setBorder(BorderFactory.createMatteBorder(1, 1, 1, 0, Color.BLACK));
+		spinnerField.setColumns(3);
+
+		incButton.setBackground(Color.WHITE);
+		incButton.setBorder(BorderFactory.createMatteBorder(1, 1, 0, 1, Color.BLACK));
+		incButton.setCursor(HAND_CURSOR);
+		incButton.setFocusPainted(false);
+
+		decButton.setBackground(Color.WHITE);
+		decButton.setBorder(BorderFactory.createMatteBorder(1, 1, 1, 1, Color.BLACK));
+		decButton.setCursor(HAND_CURSOR);
+		decButton.setFocusPainted(false);
+
+		JButton playButton = new JButton("PLAY");
+		playButton.setFont(TITLE_FONT);
+		playButton.setForeground(DEEP_SKY_BLUE);
+		playButton.setBackground(Color.BLACK);
+		playButton.setFocusPainted(false);
+		playButton.setCursor(HAND_CURSOR);
 
 		// @formatter:off
 		setup(
@@ -81,11 +117,17 @@ public class GUI extends JFrame {
 						title,
 						hGlue()
 						),
-//				vGlue(),
+				vGlue(),
 				hBox(
 						hGlue(),
 						label,
 						spinner,
+						hGlue()
+						),
+				vGlue(),
+				hBox(
+						hGlue(),
+						playButton,
 						hGlue()
 						),
 				vGlue()
@@ -93,9 +135,20 @@ public class GUI extends JFrame {
 		// @formatter:on
 
 		add(sizeSelect, "sizeSelect");
+
+		GamePanel gamePanel = new GamePanel();
+		add(gamePanel, "gamePanel");
+
+		playButton.addActionListener(l -> {
+			gamePanel.setup((int) spinner.getValue());
+			layout.show(getContentPane(), "gamePanel");
+		});
+
 		layout.show(getContentPane(), "sizeSelect");
 
+		setDefaultCloseOperation(EXIT_ON_CLOSE);
 		pack();
+		setExtendedState(MAXIMIZED_BOTH);
 		setVisible(true);
 	}
 
