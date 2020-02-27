@@ -139,7 +139,7 @@ public class GUI extends JFrame {
 		GamePanel gamePanel = new GamePanel();
 		add(gamePanel, "gamePanel");
 
-		playButton.addActionListener(l -> {
+		playButton.addActionListener(e -> {
 			gamePanel.setup((int) spinner.getValue());
 			layout.show(getContentPane(), "gamePanel");
 		});
