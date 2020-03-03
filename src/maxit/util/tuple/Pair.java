@@ -11,6 +11,18 @@ public class Pair<F, S> implements Serializable, Map.Entry<F, S> {
 
 	public final F first;
 	public final S second;
+	
+	public static <F, S> Pair<F, S> create() {
+		return new Pair<>();
+	}
+	
+	public static <F, S> Pair<F, S> create(F first, S second) {
+		return new Pair<>(first, second);
+	}
+	
+	public static <F, S> Pair<F, S> create(Pair<F, S> pair) {
+		return new Pair<>(pair);
+	}
 
 	public static <F, S> Pair<S, F> reverse(Pair<F, S> pair) {
 		return new Pair<>(pair.second, pair.first);
@@ -67,9 +79,9 @@ public class Pair<F, S> implements Serializable, Map.Entry<F, S> {
 		this.second = second;
 	}
 
-	public Pair(Pair<F, S> other) {
-		this.first = other.first;
-		this.second = other.second;
+	public Pair(Pair<F, S> pair) {
+		this.first = pair.first;
+		this.second = pair.second;
 	}
 
 	public F getFirst() {

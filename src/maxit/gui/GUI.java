@@ -21,6 +21,7 @@ import javax.swing.JPanel;
 import javax.swing.JSpinner;
 import javax.swing.JTextField;
 import javax.swing.SpinnerNumberModel;
+import javax.swing.UIManager;
 
 import maxit.util.tuple.Pair;
 
@@ -28,21 +29,24 @@ public class GUI extends JFrame {
 
 	private static final long serialVersionUID = 1L;
 
-	static final Color DEEP_SKY_BLUE = new Color(0, 191, 255);
+	static final Color  DEEP_SKY_BLUE   = new Color(0, 191, 255);
+	static final Cursor HAND_CURSOR     = Cursor.getPredefinedCursor(Cursor.HAND_CURSOR);
+	static final int    SCROLLBAR_WIDTH = UIManager.getInt("ScrollBar.width");
 
-	private static final Cursor HAND_CURSOR = Cursor.getPredefinedCursor(Cursor.HAND_CURSOR);
+	static final float OS_SCALING = getOSScaling();
 
 	private static final Map<String, Pair<Font, Map<Integer, Map<Float, Font>>>> FONT_CACHE = new HashMap<>();
-	private static final Font TITLE_FONT = getFont(Font.MONOSPACED, Font.BOLD, 96f);
+
+	private static final Font TITLE_FONT  = getFont(Font.MONOSPACED, Font.BOLD, 96f);
 	private static final Font NORMAL_FONT = getFont(Font.MONOSPACED, Font.PLAIN, 20f);
 
 	static Font getFont(String name, int style, float size) {
 		Pair<Font, Map<Integer, Map<Float, Font>>> basedFont = FONT_CACHE.get(name);
 		if (basedFont == null)
 			FONT_CACHE.put(name, basedFont = new Pair<>(new Font(name, 0, 1), new HashMap<>()));
-		Font base = basedFont.first;
-		Map<Integer, Map<Float, Font>> namedFont = basedFont.second;
-		Map<Float, Font> styledFont = namedFont.get(style);
+		Font                           base       = basedFont.first;
+		Map<Integer, Map<Float, Font>> namedFont  = basedFont.second;
+		Map<Float, Font>               styledFont = namedFont.get(style);
 		if (styledFont == null)
 			namedFont.put(style, styledFont = new HashMap<>());
 		Font font = styledFont.get(size);
@@ -52,6 +56,8 @@ public class GUI extends JFrame {
 	}
 
 	private final CardLayout layout;
+
+	private static native float getOSScaling();
 
 	public GUI() {
 		super("MAXIT");
@@ -70,7 +76,84 @@ public class GUI extends JFrame {
 		title.setFont(TITLE_FONT);
 		title.setForeground(DEEP_SKY_BLUE);
 
-		JLabel label = new JLabel("Grid Size:");
+		Pair<JLabel, JSpinner> size = mkSpinner("Grid Size", 1, null, 5, 1);
+		Pair<JLabel, JSpinner> max  = mkSpinner("Maximum Value", 0, null, 20, 1);
+
+//		JSpinner spinner
+
+		JButton playButton = new JButton("PLAY");
+		playButton.setFont(TITLE_FONT);
+		playButton.setForeground(DEEP_SKY_BLUE);
+		playButton.setBackground(Color.BLACK);
+		playButton.setFocusPainted(false);
+		playButton.setCursor(HAND_CURSOR);
+
+		// @formatter:off
+		setup(sizeSelect,
+				vGlue(),
+				hBox(
+						hGlue(),
+						title,
+						hGlue()
+						),
+				vGlue(),
+				hBox(
+						vBox(
+								vGlue(),
+								hBox(
+										hGlue(),
+										size.first
+										),
+								hBox(
+										hGlue(),
+										max.first
+										),
+								vGlue()
+								),
+						vBox(
+								vGlue(),
+								hBox(
+										size.second,
+										hGlue()
+										),
+								hBox(
+										max.second,
+										hGlue()
+										),
+								vGlue()
+								)
+						),
+				vGlue(),
+				hBox(
+						hGlue(),
+						playButton,
+						hGlue()
+						),
+				vGlue()
+				);
+		// @formatter:on
+
+		add(sizeSelect, "sizeSelect");
+
+		GamePanel gamePanel = new GamePanel();
+		add(gamePanel, "gamePanel");
+
+		playButton.addActionListener(e -> gamePanel.setup((int) size.second.getValue(),(int) max.second.getValue()));
+
+		layout.show(getContentPane(), "sizeSelect");
+
+		setDefaultCloseOperation(EXIT_ON_CLOSE);
+		pack();
+		setExtendedState(MAXIMIZED_BOTH);
+		setVisible(true);
+	}
+
+	void showGamePanel() {
+		layout.show(getContentPane(), "gamePanel");
+	}
+
+	private static Pair<JLabel, JSpinner> mkSpinner(String name, Integer minimum, Integer maximum, Integer initial, Integer step) {
+		JLabel label = new JLabel(name + ": ");
 		label.setFont(NORMAL_FONT);
 		label.setMaximumSize(label.getPreferredSize());
 
@@ -79,10 +162,10 @@ public class GUI extends JFrame {
 		spinner.setFont(NORMAL_FONT);
 		spinner.setMaximumSize(spinner.getPreferredSize());
 
-		JComponent editor = (JSpinner.NumberEditor) spinner.getEditor();
+		JComponent editor       = (JSpinner.NumberEditor) spinner.getEditor();
 		JTextField spinnerField = (JTextField) editor.getComponent(0);
-		JButton incButton = (JButton) spinner.getComponent(0);
-		JButton decButton = (JButton) spinner.getComponent(1);
+		JButton    incButton    = (JButton) spinner.getComponent(0);
+		JButton    decButton    = (JButton) spinner.getComponent(1);
 
 		spinner.setBorder(null);
 
@@ -101,55 +184,7 @@ public class GUI extends JFrame {
 		decButton.setCursor(HAND_CURSOR);
 		decButton.setFocusPainted(false);
 
-		JButton playButton = new JButton("PLAY");
-		playButton.setFont(TITLE_FONT);
-		playButton.setForeground(DEEP_SKY_BLUE);
-		playButton.setBackground(Color.BLACK);
-		playButton.setFocusPainted(false);
-		playButton.setCursor(HAND_CURSOR);
-
-		// @formatter:off
-		setup(
-				sizeSelect,
-				vGlue(),
-				hBox(
-						hGlue(),
-						title,
-						hGlue()
-						),
-				vGlue(),
-				hBox(
-						hGlue(),
-						label,
-						spinner,
-						hGlue()
-						),
-				vGlue(),
-				hBox(
-						hGlue(),
-						playButton,
-						hGlue()
-						),
-				vGlue()
-				);
-		// @formatter:on
-
-		add(sizeSelect, "sizeSelect");
-
-		GamePanel gamePanel = new GamePanel();
-		add(gamePanel, "gamePanel");
-
-		playButton.addActionListener(e -> {
-			gamePanel.setup((int) spinner.getValue());
-			layout.show(getContentPane(), "gamePanel");
-		});
-
-		layout.show(getContentPane(), "sizeSelect");
-
-		setDefaultCloseOperation(EXIT_ON_CLOSE);
-		pack();
-		setExtendedState(MAXIMIZED_BOTH);
-		setVisible(true);
+		return new Pair<>(label, spinner);
 	}
 
 	static Box.Filler hGlue() {
