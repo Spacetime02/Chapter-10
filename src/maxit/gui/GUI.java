@@ -33,26 +33,90 @@ public class GUI extends JFrame {
 	static final Cursor HAND_CURSOR     = Cursor.getPredefinedCursor(Cursor.HAND_CURSOR);
 	static final int    SCROLLBAR_WIDTH = UIManager.getInt("ScrollBar.width");
 
-	static final float OS_SCALING = getOSScaling();
+//	static final float OS_SCALING;
 
-	private static final Map<String, Pair<Font, Map<Integer, Map<Float, Font>>>> FONT_CACHE = new HashMap<>();
+	static {
+		System.loadLibrary("binaries/maxit");
+//		OS_SCALING = getOSScaling();
+		getOSScaling();
+	}
+
+//	private static final Map<String, Pair<Font, Map<Integer, Map<Float, Font>>>> FONT_CACHE = new HashMap<>();
+	private static final Map<String, Map<Integer, Map<Integer, Pair<Font, Map<Float, Font>>>>> FONT_CACHE = new HashMap<>();
 
 	private static final Font TITLE_FONT  = getFont(Font.MONOSPACED, Font.BOLD, 96f);
 	private static final Font NORMAL_FONT = getFont(Font.MONOSPACED, Font.PLAIN, 20f);
 
 	static Font getFont(String name, int style, float size) {
-		Pair<Font, Map<Integer, Map<Float, Font>>> basedFont = FONT_CACHE.get(name);
-		if (basedFont == null)
-			FONT_CACHE.put(name, basedFont = new Pair<>(new Font(name, 0, 1), new HashMap<>()));
-		Font                           base       = basedFont.first;
-		Map<Integer, Map<Float, Font>> namedFont  = basedFont.second;
-		Map<Float, Font>               styledFont = namedFont.get(style);
-		if (styledFont == null)
-			namedFont.put(style, styledFont = new HashMap<>());
-		Font font = styledFont.get(size);
-		if (font == null)
-			styledFont.put(size, font = base.deriveFont(style, size));
+		int roundedSize = (int) Math.ceil(size);
+
+		boolean adding = false;
+
+		// @formatter:off
+		Map<Integer, Map<Integer, Pair<Font, Map<Float, Font>>>> namedFont      = null;
+		    Integer                                              roundedSizeObj = roundedSize;
+		             Map<Integer, Pair<Font, Map<Float, Font>>>  sizedFont      = null;
+		                 Integer                                 styleObj       = style;
+		                          Pair<Font, Map<Float, Font>>   styledFont     = null;
+		                               Font                      base           = null;
+		                                     Map<Float, Font>    basedFont      = null;
+		                                         Float           sizeObj        = size;
+		                                                Font     font           = null;
+		// @formatter:on
+
+		// name
+		namedFont = FONT_CACHE.get(name);
+		adding = namedFont == null;
+		if (adding) {
+			namedFont = new HashMap<>();
+			FONT_CACHE.put(name, namedFont);
+		}
+
+		// rounded size
+		if (!adding) {
+			sizedFont = namedFont.get(roundedSizeObj);
+			adding = sizedFont == null;
+		}
+		if (adding) {
+			sizedFont = new HashMap<>();
+			namedFont.put(roundedSizeObj, sizedFont);
+		}
+
+		// style
+		if (!adding) {
+			styledFont = sizedFont.get(styleObj);
+			adding = styledFont == null;
+		}
+		if (adding) {
+			styledFont = new Pair<Font, Map<Float, Font>>(new Font(name, style, roundedSizeObj), new HashMap<>());
+			sizedFont.put(styleObj, styledFont);
+		}
+		base = styledFont.first;
+		basedFont = styledFont.second;
+
+		// exact size
+		if (!adding) {
+			font = basedFont.get(sizeObj);
+			adding = font == null;
+		}
+		if (adding) {
+			font = base.deriveFont(size);
+			basedFont.put(sizeObj, font);
+		}
+
 		return font;
+	}
+
+	static Font resizeFont(Font font, float size) {
+		return getFont(font, font.getStyle(), size);
+	}
+
+	static Font restyleFont(Font font, int style) {
+		return getFont(font, style, font.getSize2D());
+	}
+
+	static Font getFont(Font font, int style, float size) {
+		return getFont(font.getName(), style, size);
 	}
 
 	private final CardLayout layout;
@@ -138,7 +202,7 @@ public class GUI extends JFrame {
 		GamePanel gamePanel = new GamePanel();
 		add(gamePanel, "gamePanel");
 
-		playButton.addActionListener(e -> gamePanel.setup((int) size.second.getValue(),(int) max.second.getValue()));
+		playButton.addActionListener(e -> gamePanel.setup((int) size.second.getValue(), (int) max.second.getValue()));
 
 		layout.show(getContentPane(), "sizeSelect");
 
@@ -152,7 +216,8 @@ public class GUI extends JFrame {
 		layout.show(getContentPane(), "gamePanel");
 	}
 
-	private static Pair<JLabel, JSpinner> mkSpinner(String name, Integer minimum, Integer maximum, Integer initial, Integer step) {
+	private static Pair<JLabel, JSpinner> mkSpinner(String name, Integer minimum, Integer maximum, Integer initial,
+			Integer step) {
 		JLabel label = new JLabel(name + ": ");
 		label.setFont(NORMAL_FONT);
 		label.setMaximumSize(label.getPreferredSize());

@@ -37,7 +37,7 @@
                             							
                             <targetPlatform binaryParser="org.eclipse.cdt.core.ELF" id="org.eclipse.linuxtools.cdt.autotools.core.toolchain.targetPlatform.1613917820" isAbstract="false" name="GNU Autotools Target Platform" superClass="org.eclipse.linuxtools.cdt.autotools.core.toolchain.targetPlatform"/>
                             							
-                            <builder id="org.eclipse.linuxtools.cdt.autotools.core.toolchain.builder.824140102" keepEnvironmentInBuildfile="false" managedBuildOn="true" name="Autotools Makefile Generator" superClass="org.eclipse.linuxtools.cdt.autotools.core.toolchain.builder"/>
+                            <builder autoBuildTarget="" cleanBuildTarget="" command="mingw32-make" enableAutoBuild="false" enableCleanBuild="true" enabledIncrementalBuild="true" id="org.eclipse.linuxtools.cdt.autotools.core.toolchain.builder.824140102" incrementalBuildTarget="" keepEnvironmentInBuildfile="false" managedBuildOn="false" name="Autotools Makefile Generator" superClass="org.eclipse.linuxtools.cdt.autotools.core.toolchain.builder"/>
                             							
                             <tool id="org.eclipse.linuxtools.cdt.autotools.core.gnu.toolchain.tool.configure.1042101862" name="configure" superClass="org.eclipse.linuxtools.cdt.autotools.core.gnu.toolchain.tool.configure">
                                 								
@@ -54,6 +54,14 @@
                             </tool>
                             							
                             <tool id="org.eclipse.linuxtools.cdt.autotools.core.toolchain.tool.gpp.1759852930" name="GCC C++ Compiler" superClass="org.eclipse.linuxtools.cdt.autotools.core.toolchain.tool.gpp">
+                                								
+                                <option IS_BUILTIN_EMPTY="false" IS_VALUE_EMPTY="false" id="gnu.cpp.compiler.option.include.paths.1974657674" superClass="gnu.cpp.compiler.option.include.paths" valueType="includePath">
+                                    									
+                                    <listOptionValue builtIn="false" value="&quot;C:\MinGW\bin&quot;"/>
+                                    									
+                                    <listOptionValue builtIn="false" value="&quot;C:\Program Files\Java\jdk-12.0.2\bin&quot;"/>
+                                    								
+                                </option>
                                 								
                                 <inputType id="cdt.managedbuild.tool.gnu.cpp.compiler.input.1408583504" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.input"/>
                                 							
@@ -165,14 +173,78 @@
         	
     </storageModule>
     	
-    <storageModule moduleId="scannerConfiguration">
+    <storageModule moduleId="org.eclipse.cdt.core.LanguageSettingsProviders"/>
+    	
+    <storageModule moduleId="refreshScope" versionNumber="2">
         		
-        <autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId=""/>
+        <configuration configurationName="Debug (GNU)">
+            			
+            <resource resourceType="PROJECT" workspacePath="/Chapter 10"/>
+            		
+        </configuration>
+        		
+        <configuration configurationName="Build (GNU)">
+            			
+            <resource resourceType="PROJECT" workspacePath="/Chapter 10"/>
+            		
+        </configuration>
         	
     </storageModule>
     	
-    <storageModule moduleId="org.eclipse.cdt.core.LanguageSettingsProviders"/>
+    <storageModule moduleId="org.eclipse.cdt.make.core.buildtargets">
+        		
+        <buildTargets>
+            			
+            <target name="clean" path="" targetID="org.eclipse.cdt.build.MakeTargetBuilder">
+                				
+                <buildCommand>make</buildCommand>
+                				
+                <buildTarget>clean</buildTarget>
+                				
+                <stopOnError>true</stopOnError>
+                				
+                <useDefaultCommand>true</useDefaultCommand>
+                				
+                <runAllBuilders>true</runAllBuilders>
+                			
+            </target>
+            			
+            <target name="all" path="" targetID="org.eclipse.cdt.build.MakeTargetBuilder">
+                				
+                <buildCommand>make</buildCommand>
+                				
+                <buildArguments/>
+                				
+                <buildTarget>all</buildTarget>
+                				
+                <stopOnError>true</stopOnError>
+                				
+                <useDefaultCommand>true</useDefaultCommand>
+                				
+                <runAllBuilders>true</runAllBuilders>
+                			
+            </target>
+            		
+        </buildTargets>
+        	
+    </storageModule>
     	
-    <storageModule moduleId="org.eclipse.cdt.make.core.buildtargets"/>
+    <storageModule moduleId="scannerConfiguration">
+        		
+        <autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId=""/>
+        		
+        <scannerConfigBuildInfo instanceId="org.eclipse.linuxtools.cdt.autotools.core.configuration.build.400189739;org.eclipse.linuxtools.cdt.autotools.core.configuration.build.400189739.;org.eclipse.linuxtools.cdt.autotools.core.toolchain.tool.gpp.1759852930;cdt.managedbuild.tool.gnu.cpp.compiler.input.1408583504">
+            			
+            <autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId=""/>
+            		
+        </scannerConfigBuildInfo>
+        		
+        <scannerConfigBuildInfo instanceId="org.eclipse.linuxtools.cdt.autotools.core.configuration.build.400189739;org.eclipse.linuxtools.cdt.autotools.core.configuration.build.400189739.;org.eclipse.linuxtools.cdt.autotools.core.toolchain.tool.gcc.385650756;cdt.managedbuild.tool.gnu.c.compiler.input.477616096">
+            			
+            <autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId=""/>
+            		
+        </scannerConfigBuildInfo>
+        	
+    </storageModule>
     
 </cproject>

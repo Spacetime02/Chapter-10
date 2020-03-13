@@ -2,6 +2,7 @@ package maxit.gui;
 
 import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Rectangle;
@@ -89,11 +90,15 @@ class GridPanel extends JPanel {
 			g2d.drawLine(x, minVisY, x, maxVisY);
 		}
 
-//		for (int i = minI; i < maxI; i++)
-//			for (int j = minJ; j < maxJ; j++) {
-//				g.setColor(Color.BLACK);
-//				
-//			}
+		Font font = GUI.getFont(Font.DIALOG, Font.PLAIN, cellSize);
+		g2d.setFont(font);
+		for (int i = minI; i < Math.min(n, maxI); i++) {
+			int y = i * cellSize + cellSize / 2;
+			for (int j = minJ; j < Math.min(n, maxJ); j++) {
+				int x = j * cellSize + cellSize / 2;
+				g2d.drawString(Integer.toString(grid[i][j]), x, y);
+			}
+		}
 	}
 
 	@Override
