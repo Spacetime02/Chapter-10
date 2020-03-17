@@ -36,7 +36,7 @@ public class GUI extends JFrame {
 //	static final float OS_SCALING;
 
 	static {
-		System.loadLibrary("binaries/maxit");
+//		System.loadLibrary("binaries/maxit");
 //		OS_SCALING = getOSScaling();
 		getOSScaling();
 	}
@@ -121,7 +121,9 @@ public class GUI extends JFrame {
 
 	private final CardLayout layout;
 
-	private static native float getOSScaling();
+	private static float getOSScaling() {
+		return 0f;
+	}
 
 	public GUI() {
 		super("MAXIT");

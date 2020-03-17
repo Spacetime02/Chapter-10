@@ -1,5 +1,6 @@
 package maxit.gui;
 
+import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
@@ -7,10 +8,13 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Rectangle;
 import java.awt.RenderingHints;
+import java.awt.Stroke;
 import java.util.Random;
 
+import javax.swing.BorderFactory;
 import javax.swing.JPanel;
 import javax.swing.JViewport;
+import javax.swing.border.Border;
 
 class GridPanel extends JPanel {
 
@@ -31,6 +35,8 @@ class GridPanel extends JPanel {
 		super(null, true);
 		this.viewport = viewport;
 		setBackground(Color.BLUE);
+		Border border = BorderFactory.createMatteBorder(1, 1, 1, 1, Color.BLACK);
+		setBorder(border);
 		setCursor(GUI.HAND_CURSOR);
 		setup(n, m);
 	}
@@ -48,6 +54,7 @@ class GridPanel extends JPanel {
 
 	@Override
 	public void paint(Graphics g) {
+
 		Rectangle bounds  = getBounds();
 		Rectangle visible = getVisibleRect();
 
@@ -63,8 +70,8 @@ class GridPanel extends JPanel {
 		int minJ       = minVisX / cellSize;
 		int maxI       = (maxVisY + cellSize - 1) / cellSize;
 		int maxJ       = (maxVisX + cellSize - 1) / cellSize;
-		int maxBorderI = maxVisY / cellSize + 1;
-		int maxBorderJ = maxVisX / cellSize + 1;
+		int maxBorderI = Math.min(maxVisY / cellSize + 1, n);
+		int maxBorderJ = Math.min(maxVisX / cellSize + 1, n);
 		int minY       = minI * cellSize;
 		int minX       = minJ * cellSize;
 
@@ -76,16 +83,20 @@ class GridPanel extends JPanel {
 		g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 		g2d.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_GASP);
 
+		// Stroke
+		Stroke border = new BasicStroke(1f);
+		g2d.setStroke(border);
+
 		// Clear Background
 		g2d.clearRect(minVisX, minVisY, width, height);
 
 		// Horizontal Lines
 		g.setColor(Color.BLACK);
-		for (int i = minI; i < maxBorderI; i++) {
+		for (int i = Math.max(minI, 1); i < maxBorderI; i++) {
 			int y = i * cellSize;
 			g2d.drawLine(minVisX, y, maxVisX, y);
 		}
-		for (int j = minJ; j < maxBorderJ; j++) {
+		for (int j = Math.max(minJ, 1); j < maxBorderJ; j++) {
 			int x = j * cellSize;
 			g2d.drawLine(x, minVisY, x, maxVisY);
 		}
@@ -106,7 +117,7 @@ class GridPanel extends JPanel {
 		Dimension dim = viewport.getSize();
 
 		int size = Math.max(MIN_CELL_SIZE * n, Math.min(dim.height, dim.width) - GUI.SCROLLBAR_WIDTH);
-		size += 1 - size % n;
+		size -= size % n;
 		return new Dimension(size, size);
 	}
 
