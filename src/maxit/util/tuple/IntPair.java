@@ -1,4 +1,4 @@
-package boggle.util.tuple;
+package maxit.util.tuple;
 
 import java.io.Serializable;
 import java.lang.reflect.Array;
@@ -98,7 +98,7 @@ public class IntPair implements Serializable, Map.Entry<Integer, Integer> {
 
 	@Override
 	public boolean equals(Object obj) {
-		if (!(obj instanceof IntPair))
+		if (obj == null || !(obj instanceof IntPair))
 			return false;
 		IntPair p = (IntPair) obj;
 		return first == p.first && second == p.second;

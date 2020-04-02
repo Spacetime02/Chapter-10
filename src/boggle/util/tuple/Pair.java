@@ -1,6 +1,8 @@
 package boggle.util.tuple;
 
 import java.io.Serializable;
+import java.lang.reflect.Array;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Map;
 import java.util.Objects;
@@ -16,7 +18,7 @@ public class Pair<F, S> implements Serializable, Map.Entry<F, S> {
 		return new Pair<>(pair.second, pair.first);
 	}
 
-	public static <F extends Comparable<? super F>, S extends Comparable<? super S>> int compareFirst(Pair<F, S> left, Pair<F, S> right) {
+	public static <F extends Comparable<? super F>, S extends Comparable<? super S>> int compare(Pair<F, S> left, Pair<F, S> right) {
 		return compare(left, right, Comparator.naturalOrder(), Comparator.naturalOrder());
 	}
 
@@ -43,10 +45,10 @@ public class Pair<F, S> implements Serializable, Map.Entry<F, S> {
 	}
 
 	public static <F extends Comparable<? super F>, S extends Comparable<? super S>> Comparator<Pair<F, S>> comparator() {
-		return Pair::compareFirst;
+		return Pair::compare;
 	}
 
-	public static <F, S> Comparator<Pair<F, S>> comparatorTFirst(Comparator<F> firstComparator, Comparator<S> secondComparator) {
+	public static <F, S> Comparator<Pair<F, S>> comparator(Comparator<F> firstComparator, Comparator<S> secondComparator) {
 		return (left, right) -> compare(left, right, firstComparator, secondComparator);
 	}
 
@@ -54,7 +56,7 @@ public class Pair<F, S> implements Serializable, Map.Entry<F, S> {
 		return Pair::compareReverse;
 	}
 
-	public static <F, S> Comparator<Pair<F, S>> comparatorUFirst(Comparator<F> firstComparator, Comparator<S> secondComparator) {
+	public static <F, S> Comparator<Pair<F, S>> comparatorReverse(Comparator<F> firstComparator, Comparator<S> secondComparator) {
 		return (left, right) -> compareReverse(left, right, firstComparator, secondComparator);
 	}
 
@@ -84,8 +86,19 @@ public class Pair<F, S> implements Serializable, Map.Entry<F, S> {
 		return new Object[] { first, second };
 	}
 
+	@SuppressWarnings("unchecked")
+	public <T> T toArray(T[] a) {
+		Objects.requireNonNull(a);
+		if (a.length < 2)
+			a = (T[]) Array.newInstance(a.getClass().getComponentType(), 2);
+		a[0] = (T) first;
+		a[1] = (T) second;
+		return null;
+	}
+
 	public Pair<F, S> putIn(Map<F, S> map) {
-		return new Pair<>(first, map.put(first, second));
+		S prev = map.put(first, second);
+		return prev == null ? null : new Pair<>(first, prev);
 	}
 
 	@Override
@@ -108,12 +121,12 @@ public class Pair<F, S> implements Serializable, Map.Entry<F, S> {
 
 	@Override
 	public F getKey() {
-		return getFirst();
+		return first;
 	}
 
 	@Override
 	public S getValue() {
-		return getSecond();
+		return second;
 	}
 
 	@Override
