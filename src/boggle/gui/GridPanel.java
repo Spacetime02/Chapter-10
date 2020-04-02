@@ -152,8 +152,8 @@ class GridPanel extends JPanel {
 						((CardLayout) contentPane.getLayout()).show(contentPane, "gamePanel");
 					monitor.close();
 				} else {
-					int i = chunk.value1;
-					int j = chunk.value2;
+					int i = chunk.first;
+					int j = chunk.second;
 					add(labels[i][j]);
 					setProgress(i * 100 / height);
 					monitor.setProgress(i);

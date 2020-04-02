@@ -1,9 +1,6 @@
 package maxit.gui;
 
 import java.awt.CardLayout;
-import java.awt.Color;
-import java.awt.Component;
-import java.awt.Container;
 import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.Font;
@@ -11,8 +8,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import javax.swing.BorderFactory;
-import javax.swing.Box;
-import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
@@ -29,7 +24,8 @@ public class GUI extends JFrame {
 
 	private static final long serialVersionUID = 1L;
 
-	static final Color  DEEP_SKY_BLUE   = new Color(0, 191, 255);
+//	static final Color  DEEP_SKY_BLUE   = new Color(0, 191, 255);
+	static final Cursor DEFAULT_CURSOR  = Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR);
 	static final Cursor HAND_CURSOR     = Cursor.getPredefinedCursor(Cursor.HAND_CURSOR);
 	static final int    SCROLLBAR_WIDTH = UIManager.getInt("ScrollBar.width");
 
@@ -134,70 +130,63 @@ public class GUI extends JFrame {
 	private void initUI() {
 		setLayout(layout);
 
+		setBackground(Colors.BACKGROUND_0);
+
 		JPanel sizeSelect = new JPanel();
-		vLayout(sizeSelect);
-		sizeSelect.setBackground(Color.WHITE);
+		GUIUtils.vLayout(sizeSelect);
+		sizeSelect.setBackground(Colors.BACKGROUND_0);
 
 		JLabel title = new JLabel("MAXIT");
 		title.setFont(TITLE_FONT);
-		title.setForeground(DEEP_SKY_BLUE);
+		title.setForeground(Colors.BLUE);
 
 		Pair<JLabel, JSpinner> size = mkSpinner("Grid Size", 1, null, 5, 1);
 		Pair<JLabel, JSpinner> max  = mkSpinner("Maximum Value", 0, null, 20, 1);
 
 //		JSpinner spinner
 
-		JButton playButton = new JButton("PLAY");
+		JButton playButton = new JButton("PLAY") {
+
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public Dimension getPreferredSize() {
+				Dimension sup = super.getPreferredSize();
+				sup.width += 64;
+				return sup;
+			}
+
+		};
 		playButton.setFont(TITLE_FONT);
-		playButton.setForeground(DEEP_SKY_BLUE);
-		playButton.setBackground(Color.BLACK);
+		playButton.setForeground(Colors.BLUE);
+		playButton.setBackground(Colors.BACKGROUND_1);
+		playButton.setBorder(null);
 		playButton.setFocusPainted(false);
 		playButton.setCursor(HAND_CURSOR);
 
-		// @formatter:off
-		setup(sizeSelect,
-				vGlue(),
-				hBox(
-						hGlue(),
-						title,
-						hGlue()
-						),
-				vGlue(),
-				hBox(
-						vBox(
-								vGlue(),
-								hBox(
-										hGlue(),
-										size.first
-										),
-								hBox(
-										hGlue(),
-										max.first
-										),
-								vGlue()
-								),
-						vBox(
-								vGlue(),
-								hBox(
+		GUIUtils.vSpace(sizeSelect,
+				GUIUtils.hCenter(
+						title),
+				GUIUtils.hBox(
+						GUIUtils.vBox(
+								GUIUtils.vGlue(),
+								GUIUtils.hBox(
+										GUIUtils.hGlue(),
+										size.first),
+								GUIUtils.hBox(
+										GUIUtils.hGlue(),
+										max.first),
+								GUIUtils.vGlue()),
+						GUIUtils.vBox(
+								GUIUtils.vGlue(),
+								GUIUtils.hBox(
 										size.second,
-										hGlue()
-										),
-								hBox(
+										GUIUtils.hGlue()),
+								GUIUtils.hBox(
 										max.second,
-										hGlue()
-										),
-								vGlue()
-								)
-						),
-				vGlue(),
-				hBox(
-						hGlue(),
-						playButton,
-						hGlue()
-						),
-				vGlue()
-				);
-		// @formatter:on
+										GUIUtils.hGlue()),
+								GUIUtils.vGlue())),
+				GUIUtils.hCenter(playButton));
 
 		add(sizeSelect, "sizeSelect");
 
@@ -218,11 +207,11 @@ public class GUI extends JFrame {
 		layout.show(getContentPane(), "gamePanel");
 	}
 
-	private static Pair<JLabel, JSpinner> mkSpinner(String name, Integer minimum, Integer maximum, Integer initial,
-			Integer step) {
+	private static Pair<JLabel, JSpinner> mkSpinner(String name, Integer minimum, Integer maximum, Integer initial, Integer step) {
 		JLabel label = new JLabel(name + ": ");
 		label.setFont(NORMAL_FONT);
 		label.setMaximumSize(label.getPreferredSize());
+		label.setForeground(Colors.ON_BACKGROUND);
 
 		JSpinner spinner = new JSpinner(new SpinnerNumberModel(5, 1, null, 1));
 
@@ -238,78 +227,80 @@ public class GUI extends JFrame {
 
 		editor.setBorder(null);
 
-		spinnerField.setBorder(BorderFactory.createMatteBorder(1, 1, 1, 0, Color.BLACK));
+		spinnerField.setBorder(BorderFactory.createMatteBorder(1, 1, 1, 0, Colors.ON_BACKGROUND));
 		spinnerField.setColumns(3);
+		spinnerField.setBackground(Colors.BACKGROUND_1);
+		spinnerField.setForeground(Colors.ON_BACKGROUND);
 
-		incButton.setBackground(Color.WHITE);
-		incButton.setBorder(BorderFactory.createMatteBorder(1, 1, 0, 1, Color.BLACK));
+		incButton.setBackground(Colors.BACKGROUND_1);
+		incButton.setBorder(BorderFactory.createMatteBorder(1, 1, 0, 1, Colors.ON_BACKGROUND));
 		incButton.setCursor(HAND_CURSOR);
 		incButton.setFocusPainted(false);
 
-		decButton.setBackground(Color.WHITE);
-		decButton.setBorder(BorderFactory.createMatteBorder(1, 1, 1, 1, Color.BLACK));
+		decButton.setBackground(Colors.BACKGROUND_1);
+		decButton.setBorder(BorderFactory.createMatteBorder(1, 1, 1, 1, Colors.ON_BACKGROUND));
 		decButton.setCursor(HAND_CURSOR);
 		decButton.setFocusPainted(false);
 
 		return new Pair<>(label, spinner);
 	}
 
-	static Box.Filler hGlue() {
-		return (Box.Filler) Box.createHorizontalGlue();
-	}
-
-	static Box.Filler vGlue() {
-		return (Box.Filler) Box.createVerticalGlue();
-	}
-
-	static Box.Filler glue() {
-		return (Box.Filler) Box.createGlue();
-	}
-
-	static Box.Filler hStrut(int size) {
-		return (Box.Filler) Box.createHorizontalStrut(size);
-	}
-
-	static Box.Filler vStrut(int size) {
-		return (Box.Filler) Box.createVerticalStrut(size);
-	}
-
-	static Box.Filler rigidArea(int width, int height) {
-		return rArea(new Dimension(width, height));
-	}
-
-	static Box.Filler rArea(Dimension dim) {
-		return (Box.Filler) Box.createRigidArea(dim);
-	}
-
-	static Box hBox(Component... children) {
-		return setup(Box.createHorizontalBox(), children);
-	}
-
-	static Box vBox(Component... children) {
-		return setup(Box.createVerticalBox(), children);
-	}
-
-	static BoxLayout hLayout(Container parent) {
-		return layout(parent, BoxLayout.X_AXIS);
-	}
-
-	static BoxLayout vLayout(Container parent) {
-		return layout(parent, BoxLayout.Y_AXIS);
-	}
-
-	static BoxLayout layout(Container parent, int axis) {
-		BoxLayout layout = new BoxLayout(parent, axis);
-		if (parent != null)
-			parent.setLayout(layout);
-		return layout;
-	}
-
-	static <T extends Container> T setup(T parent, Component... children) {
-		if (parent != null)
-			for (Component child : children)
-				parent.add(child);
-		return parent;
-	}
+//	static Box.Filler hGlue() {
+//		return (Box.Filler) Box.createHorizontalGlue();
+//	}
+//
+//	static Box.Filler vGlue() {
+//		return (Box.Filler) Box.createVerticalGlue();
+//	}
+//
+//	static Box.Filler glue() {
+//		return (Box.Filler) Box.createGlue();
+//	}
+//
+//	static Box.Filler hStrut(int size) {
+//		return (Box.Filler) Box.createHorizontalStrut(size);
+//	}
+//
+//	static Box.Filler vStrut(int size) {
+//		return (Box.Filler) Box.createVerticalStrut(size);
+//	}
+//
+//	static Box.Filler rigidArea(int width, int height) {
+//		return rArea(new Dimension(width, height));
+//	}
+//
+//	static Box.Filler rArea(Dimension dim) {
+//		return (Box.Filler) Box.createRigidArea(dim);
+//	}
+//
+//	static Box hBox(Component... children) {
+//		return setup(Box.createHorizontalBox(), children);
+//	}
+//
+//	static Box vBox(Component... children) {
+//		return setup(Box.createVerticalBox(), children);
+//	}
+//
+//	static BoxLayout hLayout(Container parent) {
+//		return layout(parent, BoxLayout.X_AXIS);
+//	}
+//
+//	static BoxLayout vLayout(Container parent) {
+//		return layout(parent, BoxLayout.Y_AXIS);
+//	}
+//
+//	static BoxLayout layout(Container parent, int axis) {
+//		BoxLayout layout = new BoxLayout(parent, axis);
+//		if (parent != null)
+//			parent.setLayout(layout);
+//		return layout;
+//	}
+//
+//	static <T extends Container> T setup(T parent, Component... children) {
+//		if (parent != null)
+//			for (Component child : children)
+//				parent.add(child);
+//		return parent;
+//	}
 
 }

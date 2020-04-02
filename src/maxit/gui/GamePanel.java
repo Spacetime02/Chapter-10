@@ -23,9 +23,13 @@ public class GamePanel extends JPanel {
 	void setup(int size, int max) {
 //		this.n = n;
 //		nSqr = n * n;
-		JPanel      gridPositioner = new JPanel(new GridBagLayout());
-		JScrollPane scroll         = new JScrollPane(gridPositioner);
-		JPanel      gridPanel      = new GridPanel(size, max, scroll.getViewport());
+		JPanel gridPositioner = new JPanel(new GridBagLayout());
+		gridPositioner.setBackground(Colors.LIGHT_GREEN_1);
+
+		JScrollPane scroll = new JScrollPane(gridPositioner);
+
+		JPanel gridPanel = new GridPanel(size, max, scroll.getViewport());
+
 		add(scroll);
 		gridPositioner.add(gridPanel);
 		gridPanel.setBackground(Color.RED);
@@ -56,6 +60,7 @@ public class GamePanel extends JPanel {
 		// @formatter:on
 
 	}
+
 	/*
 	@formatter:off
 	private class LoadTask extends SwingWorker<Void, Runnable> {
