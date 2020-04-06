@@ -2,7 +2,7 @@ package maxit.core;
 
 import java.io.Serializable;
 
-import boggle.util.tuple.IntPair;
+import maxit.util.tuple.IntPair;
 
 public class Position implements Serializable, Comparable<Position> {
 
