@@ -23,10 +23,11 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 
-import maxit.core.HumanPlayer;
 import maxit.core.MAXIT;
-import maxit.core.Player;
 import maxit.core.Position;
+import maxit.core.players.HumanPlayer;
+import maxit.core.players.Player;
+import maxit.core.players.RecursiveComputerPlayer;
 import maxit.util.Search;
 import maxit.util.function.FloatUnaryOperator;
 import maxit.util.tuple.Pair;
@@ -81,12 +82,12 @@ class GridPanel extends JPanel {
 
 			String n1 = game.getPlayer1().getName();
 			String n2 = game.getPlayer2().getName();
-			if (comp > 1)
-				JOptionPane.showMessageDialog(this, n1 + " beat " + n2 + " " + score1 + "-" + score2 + "!", "Game Over!", JOptionPane.INFORMATION_MESSAGE);
-			else if (comp < 1)
-				JOptionPane.showMessageDialog(this, n2 + " beat " + n1 + " " + score2 + "-" + score1 + "!", "Game Over!", JOptionPane.INFORMATION_MESSAGE);
-			if (comp == 0)
-				JOptionPane.showMessageDialog(this, n1 + " and " + n2 + " tied " + score1 + "-" + score2 + "!", "Game Over!", JOptionPane.INFORMATION_MESSAGE);
+			if (comp > 0)
+				JOptionPane.showMessageDialog(this, n1 + " beat " + n2 + " " + score1 + " to " + score2 + "!", "Game Over!", JOptionPane.INFORMATION_MESSAGE);
+			else if (comp < 0)
+				JOptionPane.showMessageDialog(this, n2 + " beat " + n1 + " " + score2 + " to " + score1 + "!", "Game Over!", JOptionPane.INFORMATION_MESSAGE);
+			else
+				JOptionPane.showMessageDialog(this, n1 + " and " + n2 + " tied " + score1 + " to " + score2 + "!", "Game Over!", JOptionPane.INFORMATION_MESSAGE);
 		}).start();
 	}
 

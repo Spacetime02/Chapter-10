@@ -1,4 +1,4 @@
-package maxit.gui;
+package maxit.core.players;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -12,9 +12,9 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-import java.util.function.Supplier;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.IntConsumer;
 
-import maxit.core.ComputerPlayer;
 import maxit.core.MAXIT;
 import maxit.core.Position;
 import maxit.util.tuple.IntPair;
@@ -22,7 +22,9 @@ import maxit.util.tuple.Pair;
 
 public class RecursiveComputerPlayer extends ComputerPlayer {
 
-	private static final Random SHUFFLE_RANDY = new Random();
+	private static final boolean RANDOM_FIRST_MOVE = true;
+
+	private static final Random RANDY = new Random();
 
 	private final int maxCacheDepth;
 	private final int maxSearchDepth;
@@ -34,55 +36,78 @@ public class RecursiveComputerPlayer extends ComputerPlayer {
 	}
 
 	@Override
-	protected Position computeMove(int[][] valueGrid, boolean[][] takenGrid, Position currentPos, boolean horizontal, int score, int oppScore, Supplier<Position> userInput) {
-		outer: while (true) {
-			ExecutorService threadPool = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
+	protected Position computeMove(int[][] valueGrid, boolean[][] takenGrid, Position currentPos, boolean horizontal, int score, int oppScore, String playerName) {
+		int gridSize = valueGrid.length;
 
-			int gridSize = valueGrid.length;
+		if (RANDOM_FIRST_MOVE && currentPos == null)
+			return new Position(RANDY.nextInt(gridSize), RANDY.nextInt(gridSize));
 
-			Position[] validMoves = MAXIT.getValidMoves(takenGrid, currentPos, horizontal);
+		ExecutorService threadPool = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
 
-			@SuppressWarnings("rawtypes")
-			Future[] futures = new Future[validMoves.length];
+		Position[] validMoves = MAXIT.getValidMoves(takenGrid, currentPos, horizontal);
 
-			for (int i = 0; i < validMoves.length; i++) {
-				score = MAXIT.simulateMove(valueGrid, takenGrid, validMoves[i], score);
-				boolean[][] taken = new boolean[gridSize][];
-				for (int j = 0; j < gridSize; j++)
-					taken[j] = Arrays.copyOf(takenGrid[j], gridSize);
-				futures[i] = threadPool.submit(new Evaluator(valueGrid, taken, currentPos, !horizontal, score, oppScore));
-				score = MAXIT.undoSimulateMove(valueGrid, takenGrid, validMoves[i], score);
-			}
+		int moveCount = validMoves.length;
 
-			Position bestMove = validMoves[0];
+		@SuppressWarnings("rawtypes")
+		Future[] futures = new Future[validMoves.length];
 
-			int bestVal;
+		AtomicInteger counter = new AtomicInteger();
 
+		String moveCountStr = Integer.toString(moveCount);
+
+		System.out.println(playerName);
+		for (int i = 0; i < moveCount; i++) {
+			Position move = validMoves[i];
+
+			String format = "  Move %" + moveCountStr.length() + "d/" + moveCountStr + " at " + String.format("%8s", move) + ": %6d%n";
+
+			IntConsumer callback = value -> System.out.printf(format, counter.incrementAndGet(), value);
+
+			score = MAXIT.simulateMove(valueGrid, takenGrid, validMoves[i], score);
+
+			boolean[][] taken = new boolean[gridSize][];
+			for (int j = 0; j < gridSize; j++)
+				taken[j] = Arrays.copyOf(takenGrid[j], gridSize);
+
+			futures[i] = threadPool.submit(new Evaluator(valueGrid, taken, validMoves[i], !horizontal, score, oppScore, callback));
+
+			score = MAXIT.undoSimulateMove(valueGrid, takenGrid, validMoves[i], score);
+		}
+
+		Position bestMove = validMoves[0];
+
+		int bestVal;
+
+		try {
+			bestVal = (int) futures[0].get();
+		} catch (InterruptedException | ExecutionException e) {
+			e.printStackTrace();
+			threadPool.shutdownNow();
+			System.exit(-1);
+			return null;
+		}
+
+		int val;
+		for (int i = 0; i < validMoves.length; i++) {
 			try {
-				bestVal = (int) futures[0].get();
+				val = (int) futures[i].get();
 			} catch (InterruptedException | ExecutionException e) {
 				e.printStackTrace();
 				threadPool.shutdownNow();
-				continue outer;
+				System.exit(-1);
+				return null;
 			}
 
-			int val;
-			for (int i = 0; i < validMoves.length; i++) {
-				try {
-					val = (int) futures[i].get();
-				} catch (InterruptedException | ExecutionException e) {
-					e.printStackTrace();
-					threadPool.shutdownNow();
-					continue outer;
-				}
-
-				if (val > bestVal) {
-					bestMove = validMoves[i];
-					bestVal = val;
-				}
+			if (val > bestVal) {
+				bestMove = validMoves[i];
+				bestVal = val;
 			}
-			return bestMove;
 		}
+		System.out.println("  Best at " + bestMove + ": " + bestVal);
+		System.out.println();
+
+		return bestMove;
+
 	}
 
 	private class Evaluator implements Callable<Integer> {
@@ -96,21 +121,29 @@ public class RecursiveComputerPlayer extends ComputerPlayer {
 		private int         score;
 		private int         oppScore;
 
-		private Evaluator(int[][] valueGrid, boolean[][] takenGrid, Position currentPos, boolean horizontal, int score, int oppScore) {
-			this.valueGrid = valueGrid;
-			this.takenGrid = takenGrid;
+		private IntConsumer callback;
+
+		private Evaluator(int[][] valueGrid, boolean[][] takenGrid, Position currentPos, boolean horizontal, int score, int oppScore, IntConsumer callback) {
+			// @formatter:off
+			this.valueGrid  = valueGrid;
+			this.takenGrid  = takenGrid;
 			this.currentPos = currentPos;
 			this.horizontal = horizontal;
-			this.score = score;
-			this.oppScore = oppScore;
+			this.score      = score;
+			this.oppScore   = oppScore;
+			this.callback   = callback;
+			// @formtter:on
 		}
 
 		@Override
-		public Integer call() throws Exception {
+		public Integer call() {
 			try {
-				return evaluateRecursively(Integer.MIN_VALUE, Integer.MAX_VALUE, 1, true);
-			} catch (NullPointerException e) {
-				e.printStackTrace();
+				int val = evaluateRecursively(Integer.MIN_VALUE, Integer.MAX_VALUE, 1, true);
+				callback.accept(val);
+				return val;
+			} catch (Throwable t) {
+				t.printStackTrace();
+				System.exit(-1);
 				return null;
 			}
 		}
@@ -137,7 +170,7 @@ public class RecursiveComputerPlayer extends ComputerPlayer {
 
 			Position[]     validMoves    = MAXIT.getValidMoves(takenGrid, currentPos, horizontal ^ oppPlaying);
 			List<Position> validMoveList = new ArrayList<>(Arrays.asList(validMoves));
-			Collections.shuffle(validMoveList, SHUFFLE_RANDY);
+			Collections.shuffle(validMoveList, RANDY);
 			validMoveList.toArray(validMoves);
 
 			for (Position move : validMoves) {

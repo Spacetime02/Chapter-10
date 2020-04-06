@@ -34,12 +34,6 @@ public class GUI extends JFrame {
 
 	private static final long serialVersionUID = 1L;
 
-	private static final int DEFAULT_GRID_SIZE    = 10;
-	private static final int DEFAULT_MIN_VALUE    = -9;
-	private static final int DEFAULT_MAX_VALUE    = 11;
-	private static final int DEFAULT_CACHE_DEPTH  = 11;
-	private static final int DEFAULT_SEARCH_DEPTH = 11;
-
 	private static final int SPINNER_COLUMNS = 7;
 	private static final int FIELD_COLUMNS   = 15;
 
@@ -49,7 +43,8 @@ public class GUI extends JFrame {
 
 	private static final Random NAME_RANDY = new Random();
 
-	private static final Font TITLE_FONT  = Fonts.get(Font.MONOSPACED, Font.BOLD, 96f);
+	private static final Font TITLE_FONT  = Fonts.get(Font.MONOSPACED, Font.BOLD, 120f);
+	private static final Font BUTTON_FONT = Fonts.get(Font.MONOSPACED, Font.BOLD, 72f);
 	private static final Font NORMAL_FONT = Fonts.get(Font.MONOSPACED, Font.PLAIN, 20f);
 
 	private static String[] loadNames() {
@@ -92,16 +87,16 @@ public class GUI extends JFrame {
 		String n1 = getRandomName();
 		String n2 = getRandomName();
 
-		Pair<JLabel, JSpinner>          sizePair        = mkSpinner("Grid Size", 1, null, DEFAULT_GRID_SIZE, 1);
-		Pair<JLabel, JSpinner>          minPair         = mkSpinner("Minimum Value", null, 0, DEFAULT_MIN_VALUE, 1);
-		Pair<JLabel, JSpinner>          maxPair         = mkSpinner("Maximum Value", 0, null, DEFAULT_MAX_VALUE, 1);
+		Pair<JLabel, JSpinner>          sizePair        = mkSpinner("Grid Size", 1, null, Defaults.GRID_SIZE, 1);
+		Pair<JLabel, JSpinner>          minPair         = mkSpinner("Minimum Value", null, 0, Defaults.MIN_VALUE, 1);
+		Pair<JLabel, JSpinner>          maxPair         = mkSpinner("Maximum Value", 0, null, Defaults.MAX_VALUE, 1);
 		Pair<JLabel, JComboBox<String>> type1Pair       = mkComboBox("Player 1 Type", "Human", "Human", "Computer");
 		Pair<JLabel, JTextField>        name1Pair       = mkField("Player 1 Name", n1);
 		Pair<JLabel, JComboBox<String>> type2Pair       = mkComboBox("Player 2 Type", "Computer", "Human", "Computer");
 		Pair<JLabel, JTextField>        name2Pair       = mkField("Player 2 Name", n2);
 		Pair<JLabel, JComboBox<String>> horizontalPair  = mkComboBox("Horizontal Player", n1, n1, n2);
-		Pair<JLabel, JSpinner>          cacheDepthPair  = mkSpinner("Maximum Cache Depth", 0, null, DEFAULT_CACHE_DEPTH, 1);
-		Pair<JLabel, JSpinner>          searchDepthPair = mkSpinner("Maximum Search Depth", 1, null, DEFAULT_SEARCH_DEPTH, 1);
+		Pair<JLabel, JSpinner>          cacheDepthPair  = mkSpinner("Maximum Cache Depth", 0, null, Defaults.CACHE_DEPTH, 1);
+		Pair<JLabel, JSpinner>          searchDepthPair = mkSpinner("Maximum Search Depth", 1, null, Defaults.SEARCH_DEPTH, 1);
 
 		JSpinner          size        = sizePair.second;
 		JSpinner          min         = minPair.second;
@@ -182,12 +177,12 @@ public class GUI extends JFrame {
 			@Override
 			public Dimension getPreferredSize() {
 				Dimension sup = super.getPreferredSize();
-				sup.width += 64;
+				sup.width += 48;
 				return sup;
 			}
 
 		};
-		playButton.setFont(TITLE_FONT);
+		playButton.setFont(BUTTON_FONT);
 		playButton.setForeground(Colors.ON_BACKGROUND);
 		playButton.setBackground(Colors.BACKGROUND_1);
 		playButton.setBorder(null);

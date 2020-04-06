@@ -1,6 +1,7 @@
-package maxit.core;
+package maxit.core.players;
 
-import java.util.function.Supplier;
+import maxit.core.MAXIT;
+import maxit.core.Position;
 
 public class GreedyComputerPlayer extends ComputerPlayer {
 
@@ -9,7 +10,7 @@ public class GreedyComputerPlayer extends ComputerPlayer {
 	}
 
 	@Override
-	protected Position computeMove(int[][] valueGrid, boolean[][] takenGrid, Position currentPos, boolean horizontal, int score, int oppScore, Supplier<Position> userInput) {
+	protected Position computeMove(int[][] valueGrid, boolean[][] takenGrid, Position currentPos, boolean horizontal, int score, int oppScore, String playerName) {
 		Position[] valid = MAXIT.getValidMoves(takenGrid, currentPos, horizontal);
 
 		Position best = null;

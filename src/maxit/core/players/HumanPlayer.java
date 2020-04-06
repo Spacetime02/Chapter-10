@@ -1,6 +1,9 @@
-package maxit.core;
+package maxit.core.players;
 
 import java.util.function.Supplier;
+
+import maxit.core.MAXIT;
+import maxit.core.Position;
 
 public class HumanPlayer extends Player {
 
@@ -9,7 +12,7 @@ public class HumanPlayer extends Player {
 	}
 
 	@Override
-	public Position move(int[][] valueGrid, boolean[][] takenGrid, Position currentPos, boolean horizontal, int score, int oppScore, Supplier<Position> userInput) {
+	public Position move(int[][] valueGrid, boolean[][] takenGrid, Position currentPos, boolean horizontal, int score, int oppScore, String playerName, Supplier<Position> userInput) {
 		Position pos;
 		do
 			pos = userInput.get();

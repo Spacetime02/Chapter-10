@@ -7,6 +7,8 @@ import java.util.concurrent.LinkedBlockingDeque;
 import java.util.function.IntBinaryOperator;
 import java.util.function.IntConsumer;
 
+import maxit.core.players.Player;
+
 public class MAXIT {
 
 	private static final Random GRID_RANDY = new Random();
@@ -174,7 +176,7 @@ public class MAXIT {
 				takenGrid[i] = Arrays.copyOf(this.takenGrid[i], gridSize);
 			}
 
-			Position movePos = currentPlayer.move(valueGrid, takenGrid, currentPos, isHorizontal(), getCurrentScore(), getOpponentScore(), this::getUserInput);
+			Position movePos = currentPlayer.move(valueGrid, takenGrid, currentPos, isHorizontal(), getCurrentScore(), getOpponentScore(), currentPlayer.getName(), this::getUserInput);
 
 			doMove(movePos);
 
