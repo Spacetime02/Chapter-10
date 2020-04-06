@@ -255,7 +255,9 @@ public class MAXIT {
 	private Position getUserInput() {
 		while (true)
 			try {
-				return userInputQueue.take();
+				Position userInput = userInputQueue.take();
+				if (isValid(userInput))
+					return userInputQueue.take();
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
