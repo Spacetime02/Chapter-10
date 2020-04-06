@@ -24,7 +24,6 @@ public abstract class ComputerPlayer extends Player {
 		return movePos;
 	}
 
-	// TODO write a better algorithm! This one is awful!
 	protected abstract Position computeMove(int[][] valueGrid, boolean[][] takenGrid, Position currentPos, boolean horizontal, int score, int oppScore, Supplier<Position> userInput);
 
 }

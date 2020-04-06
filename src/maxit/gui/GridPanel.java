@@ -148,22 +148,12 @@ class GridPanel extends JPanel {
 
 		Graphics2D g2D = (Graphics2D) g;
 
-//		double scale = g2D.getDeviceConfiguration().getDefaultTransform().getScaleX();
-
 		Rectangle visible = getVisibleRect();
 
-//		int cellSize = (int) Math.round(computeCellSize() * scale);
 		int cellSize = computeCellSize();
 
-//		int borderThickness = (int) Math.round(BORDER_THICKNESS * scale);
-
-//		int cellSizeNoBorder = cellSize - borderThickness;
 		int cellSizeNoBorder = cellSize - BORDER_THICKNESS;
 
-//		int visHeight       = (int) Math.round(visible.height * scale);
-//		int visWidth        = (int) Math.round(visible.width * scale);
-//		int minVisY         = (int) Math.round(visible.y * scale);
-//		int minVisX         = (int) Math.round(visible.x * scale);
 		int visHeight       = visible.height;
 		int visWidth        = visible.width;
 		int minVisY         = visible.y;
@@ -327,10 +317,6 @@ class GridPanel extends JPanel {
 		if (size < minSize)
 			size = minSize;
 
-		// TODO fix flickering
-//		size -= (size - BORDER_THICKNESS) % game.getGridSize() + BORDER_THICKNESS;
-//		size
-
 		return size;
 	}
 
@@ -391,7 +377,7 @@ class GridPanel extends JPanel {
 			boolean clickable = clickable(processedPos);
 
 			if (clickable) {
-				game.queueUserInput(processedPos.first); // TODO must recheck clickability upon processing!
+				game.queueUserInput(processedPos.first);
 				update(true);
 			}
 		}

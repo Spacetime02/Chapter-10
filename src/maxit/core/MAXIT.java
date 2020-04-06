@@ -199,7 +199,6 @@ public class MAXIT {
 			throw new InvalidMoveException(movePos);
 		takenGrid[movePos.i][movePos.j] = true;
 		addCurrentScore(valueGrid[movePos.i][movePos.j]);
-//		System.out.println("Player " + (isPlayer1() ? "1" : "2") + " (" + currentPlayer.getName() + ") played at " + movePos + ".");
 		takenBy1grid[movePos.i][movePos.j] = isPlayer1();
 		swapPlayers();
 	}
@@ -359,25 +358,3 @@ public class MAXIT {
 	}
 
 }
-
-//private void addOpponentScore(int points) {
-//	if (isPlayer1())
-//		score2 += points;
-//	else
-//		score1 += points;
-//}
-//private void setValue(int value, int i, int j) {
-//	valueGrid[i][j] = value;
-//}
-//
-//private void setValue(int value, Position pos) {
-//	setValue(value, pos.i, pos.j);
-//}
-//
-//private void setTaken(boolean taken, int i, int j) {
-//takenGrid[i][j] = taken;
-//}
-//
-//private void setTaken(boolean taken, Position pos) {
-//setTaken(taken, pos.i, pos.j);
-//}
