@@ -2,143 +2,85 @@ package maxit.gui;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.EventQueue;
+import java.awt.Font;
 import java.awt.GridBagLayout;
 
+import javax.swing.Box;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+
+import maxit.util.tuple.Pair;
 
 public class GamePanel extends JPanel {
 
 	private static final long serialVersionUID = 1L;
 
-//	private int n;
-//	private int nSqr;
+	private static final int SCORE_BOX_SPACING = 10;
+
+	private static final Font NAME_FONT = Fonts.get(Font.MONOSPACED, Font.BOLD, 20);
+
+	private static JLabel scoreLabel1;
+	private static JLabel scoreLabel2;
+
+	private JPanel gridPanel;
 
 	public GamePanel() {
 		super(new BorderLayout(), true);
-		setBackground(Color.WHITE);
+		setBackground(Colors.BACKGROUND_0);
 	}
 
-	// FIXME
-	void setup(int size, int max) {
-//		this.n = n;
-//		nSqr = n * n;
+	void setup(int gridSize, int minValue, int maxValue, boolean human1, String name1, boolean human2, String name2, boolean horizontal1, int searchDepth, int cacheDepth, GUI gui) {
+		if (minValue > maxValue)
+			throw new IllegalArgumentException("minValue (" + minValue + ") > maxValue (" + maxValue + ").");
+
+		JPanel parentPanel = new JPanel(new BorderLayout());
+		parentPanel.setBackground(Colors.BACKGROUND_0);
+
 		JPanel gridPositioner = new JPanel(new GridBagLayout());
-		gridPositioner.setBackground(Colors.LIGHT_GREEN_1);
+		gridPositioner.setBackground(Colors.BACKGROUND_0);
 
-		JScrollPane scroll = new JScrollPane(gridPositioner);
+		JScrollPane scrollPane = new JScrollPane(gridPositioner);
+		scrollPane.setBackground(Colors.BACKGROUND_0);
+//		scrollPane.getVerticalScrollBar().setUI(new BasicScrollBarUI());
 
-		JPanel gridPanel = new GridPanel(size, max, scroll.getViewport());
+		gridPanel = new GridPanel(gridSize, minValue, maxValue, human1, name1, human2, name2, horizontal1, cacheDepth, searchDepth, scrollPane, score1 -> EventQueue.invokeLater(() -> scoreLabel1.setText(Integer.toString(score1))), score2 -> EventQueue.invokeLater(() -> scoreLabel2.setText(Integer.toString(score2))));
 
-		add(scroll);
+		Pair<JLabel, Box> scoreBox1 = mkScoreBox(name1, Colors.BLUE);
+		Pair<JLabel, Box> scoreBox2 = mkScoreBox(name2, Colors.RED);
+
+		scoreLabel1 = scoreBox1.first;
+		scoreLabel2 = scoreBox2.first;
+
+		add(parentPanel);
+		parentPanel.add(scrollPane, BorderLayout.CENTER);
+		parentPanel.add(scoreBox1.second, BorderLayout.WEST);
+		parentPanel.add(scoreBox2.second, BorderLayout.EAST);
 		gridPositioner.add(gridPanel);
-		gridPanel.setBackground(Color.RED);
-//		gridPositioner.setBackground(Color.RED);
 
-		int[][] grid = new int[size][size];
-		for (int i = 0; i < size; i++)
-			for (int j = 0; j < size; j++)
-//				grid[i][j] = randy.nextInt(20); // TODO remove hardcoded maximum
-				grid[i][j] = i * 10 + j;
-
-		((GUI) getTopLevelAncestor()).showGamePanel();
-
-		// @formatter:off
-		
-//		GUI.setup(
-//				this,
-//				GUI.setup(
-//						scroll,
-//						GUI.setup(
-//								gridPositioner//,
-//								gridPanel
-//								)
-//						)
-//				);
-//		new LoadTask(grid, gridPanel).execute();
-//		System.out.println(((GridLayout)gridPanel.getLayout()).getColumns());
-		// @formatter:on
-
+		gui.showGamePanel();
 	}
 
-	/*
-	@formatter:off
-	private class LoadTask extends SwingWorker<Void, Runnable> {
+	private Pair<JLabel, Box> mkScoreBox(String name, Color color) {
+		JLabel nameLabel  = new JLabel(name);
+		JLabel scoreLabel = new JLabel("0");
 
-		private final int[][] grid;
+		nameLabel.setForeground(color);
+		scoreLabel.setForeground(color);
 
-		private JPanel gridPanel;
+		nameLabel.setFont(NAME_FONT);
 
-		private volatile ProgressMonitor monitor;
-
-		private volatile int added = 0;
-
-		private LoadTask(int[][] grid, JPanel gridPanel) {
-			this.grid = grid;
-			this.gridPanel = gridPanel;
-		}
-
-		@Override
-		protected Void doInBackground() {
-
-			try {
-				publish(() -> {
-					monitor = new ProgressMonitor(GamePanel.this, String.format("Loading %dx%<d Grid", n), null, 0, n);
-					monitor.setProgress(0);
-					System.out.println("init");
-				});
-				for (int i = 0; i < n;) {
-					while (added < i - 1)
-						System.out.println(added + "<" + (i - 1));
-					int[] row = grid[i];
-					final int fi = i;
-					for (int j = 0; j < n; j++) {
-						final int fj = j;
-						final String val = Integer.toString(row[j]);
-						publish(() -> {
-							final JButton cell = new JButton(val);
-							cell.setBorder(BorderFactory.createMatteBorder(fi == 0 ? 1 : 0, fj == 0 ? 1 : 0, 1, 1,
-									Color.BLACK));
-							cell.setForeground(GUI.DEEP_SKY_BLUE);
-							gridPanel.add(cell);
-							System.out.println("Row " + fi + " Col " + fj);
-						});
-					}
-					publish(() -> {
-						added = fi;
-						System.out.println("added -> " + added);
-					});
-					final int finalI = ++i;
-					final String note = String.format("Row %d/%d", finalI, n);
-					publish(() -> {
-						monitor.setProgress(finalI);
-						monitor.setNote(note);
-						((GUI) getTopLevelAncestor()).showGamePanel();
-						System.out.println("end");
-					});
-				}
-				Thread.sleep(15);
-//					publish(gridPanel.getLayout().);
-				publish(() -> System.out.println("Monitor: " + monitor));
-				System.out.println(monitor);
-				Runnable r = monitor::close;
-				publish(r);
-			} catch (Throwable e) {
-				e.printStackTrace();
-			}
-			return null;
-		}
-
-		@Override
-		protected void process(List<Runnable> chunks) {
-			for (Runnable r : chunks)
-				if (r != null)
-					r.run();
-				else
-					throw new Error("Null chunk! This should not happen!");
-		}
-
+		Box box = GUIUtils.hBox(
+				GUIUtils.hStrut(SCORE_BOX_SPACING),
+				GUIUtils.vBox(
+						GUIUtils.vStrut(SCORE_BOX_SPACING),
+						GUIUtils.hCenter(nameLabel),
+						GUIUtils.vStrut(SCORE_BOX_SPACING),
+						GUIUtils.hCenter(scoreLabel),
+						GUIUtils.vGlue()),
+				GUIUtils.hStrut(SCORE_BOX_SPACING));
+		return new Pair<>(scoreLabel, box);
 	}
-	@formatter:on
-	*/
+
 }

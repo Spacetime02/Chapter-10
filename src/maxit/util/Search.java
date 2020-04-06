@@ -1,4 +1,4 @@
-package maxit.util.algo;
+package maxit.util;
 
 import java.util.Objects;
 import java.util.function.DoubleUnaryOperator;

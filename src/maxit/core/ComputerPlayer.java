@@ -1,41 +1,30 @@
 package maxit.core;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Random;
-import java.util.Scanner;
+import java.util.function.Supplier;
 
-public class ComputerPlayer extends Player {
+public abstract class ComputerPlayer extends Player {
 
-	private static final String[] NAMES = loadNames();
+	private static final long MIN_DURATION = 250L;
 
-	private static final Random nameRandy = new Random();
-
-	private static String[] loadNames() {
-		try (Scanner nameScanner = new Scanner(new File("MAXIT names.txt"))) {
-			List<String> nameList = new ArrayList<>();
-			while (nameScanner.hasNext())
-				nameList.add(nameScanner.next());
-			return nameList.toArray(new String[nameList.size()]);
-		} catch (FileNotFoundException e) {
-			e.printStackTrace();
-			return new String[] { "ERR_NAME_LOAD_FAILED" };
-		}
-	}
-
-	private static String getRandomName() {
-		return NAMES[nameRandy.nextInt(NAMES.length)];
-	}
-
-	public ComputerPlayer() {
-		super(getRandomName());
+	public ComputerPlayer(String name) {
+		super(name);
 	}
 
 	@Override
-	public Position move(Maxit game) {
-		return null;
+	public Position move(int[][] valueGrid, boolean[][] takenGrid, Position currentPos, boolean horizontal, int score, int oppScore, Supplier<Position> userInput) {
+		long     end     = System.currentTimeMillis() + MIN_DURATION;
+		Position movePos = computeMove(valueGrid, takenGrid, currentPos, horizontal, score, oppScore, userInput);
+		Long     remainingTime;
+		while ((remainingTime = end - System.currentTimeMillis()) > 0)
+			try {
+				Thread.sleep(remainingTime);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+		return movePos;
 	}
+
+	// TODO write a better algorithm! This one is awful!
+	protected abstract Position computeMove(int[][] valueGrid, boolean[][] takenGrid, Position currentPos, boolean horizontal, int score, int oppScore, Supplier<Position> userInput);
 
 }

@@ -2,6 +2,7 @@ package maxit.util.tuple;
 
 import java.io.Serializable;
 import java.lang.reflect.Array;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Map;
 import java.util.Objects;
@@ -105,12 +106,14 @@ public class Pair<F, S> implements Serializable, Map.Entry<F, S> {
 		if (obj == null || !(obj instanceof Pair<?, ?>))
 			return false;
 		Pair<?, ?> p = (Pair<?, ?>) obj;
-		return first.equals(p.first) && second.equals(p.second);
+		return (first == null ? p.first == null : first.equals(p.first)) && (second == null ? p.second == null : second.equals(p.second));
 	}
 
 	@Override
 	public int hashCode() {
-		return 31 * first.hashCode() + second.hashCode();
+		int f = first == null ? 0 : first.getClass().isArray() ? Arrays.deepHashCode((Object[]) first) : first.hashCode();
+		int s = second == null ? 0 : second.getClass().isArray() ? Arrays.deepHashCode((Object[]) second) : second.hashCode();
+		return 31 * f + s;
 	}
 
 	@Override

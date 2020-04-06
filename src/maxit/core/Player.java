@@ -1,10 +1,10 @@
 package maxit.core;
 
+import java.util.function.Supplier;
+
 public abstract class Player {
 
 	private final String name;
-
-	private int score = 0;
 
 	public Player(String name) {
 		this.name = name;
@@ -14,14 +14,6 @@ public abstract class Player {
 		return name;
 	}
 
-	public void addPoints(int points) {
-		this.score += points;
-	}
-
-	public int getScore() {
-		return score;
-	}
-
-	public abstract Position move(Maxit game);
+	public abstract Position move(int[][] valueGrid, boolean[][] takenGrid, Position currentPos, boolean horizontal, int score, int oppScore, Supplier<Position> userInput);
 
 }

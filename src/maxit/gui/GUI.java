@@ -1,14 +1,22 @@
 package maxit.gui;
 
 import java.awt.CardLayout;
-import java.awt.Cursor;
+import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Font;
-import java.util.HashMap;
-import java.util.Map;
+import java.awt.event.FocusAdapter;
+import java.awt.event.FocusEvent;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Random;
+import java.util.Scanner;
 
 import javax.swing.BorderFactory;
+import javax.swing.Box;
 import javax.swing.JButton;
+import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -17,6 +25,8 @@ import javax.swing.JSpinner;
 import javax.swing.JTextField;
 import javax.swing.SpinnerNumberModel;
 import javax.swing.UIManager;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 
 import maxit.util.tuple.Pair;
 
@@ -24,102 +34,39 @@ public class GUI extends JFrame {
 
 	private static final long serialVersionUID = 1L;
 
-//	static final Color  DEEP_SKY_BLUE   = new Color(0, 191, 255);
-	static final Cursor DEFAULT_CURSOR  = Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR);
-	static final Cursor HAND_CURSOR     = Cursor.getPredefinedCursor(Cursor.HAND_CURSOR);
-	static final int    SCROLLBAR_WIDTH = UIManager.getInt("ScrollBar.width");
+	private static final int DEFAULT_GRID_SIZE = 10;
+	private static final int DEFAULT_MIN_VALUE = -9;
+	private static final int DEFAULT_MAX_VALUE = 11;
 
-//	static final float OS_SCALING;
+	private static final int SPINNER_COLUMNS = 7;
+	private static final int FIELD_COLUMNS   = 15;
 
-	static {
-//		System.loadLibrary("binaries/maxit");
-//		OS_SCALING = getOSScaling();
-		getOSScaling();
+	static final int SCROLLBAR_SIZE = UIManager.getInt("ScrollBar.width");
+
+	private static final String[] NAMES = loadNames();
+
+	private static final Random NAME_RANDY = new Random();
+
+	private static final Font TITLE_FONT  = Fonts.get(Font.MONOSPACED, Font.BOLD, 96f);
+	private static final Font NORMAL_FONT = Fonts.get(Font.MONOSPACED, Font.PLAIN, 20f);
+
+	private static String[] loadNames() {
+		try (Scanner nameScanner = new Scanner(new File("MAXIT names.txt"))) {
+			List<String> nameList = new ArrayList<>();
+			while (nameScanner.hasNext())
+				nameList.add(nameScanner.next());
+			return nameList.toArray(new String[nameList.size()]);
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+			return new String[] { "ERR_NAME_LOAD_FAILED" };
+		}
 	}
 
-//	private static final Map<String, Pair<Font, Map<Integer, Map<Float, Font>>>> FONT_CACHE = new HashMap<>();
-	private static final Map<String, Map<Integer, Map<Integer, Pair<Font, Map<Float, Font>>>>> FONT_CACHE = new HashMap<>();
-
-	private static final Font TITLE_FONT  = getFont(Font.MONOSPACED, Font.BOLD, 96f);
-	private static final Font NORMAL_FONT = getFont(Font.MONOSPACED, Font.PLAIN, 20f);
-
-	static Font getFont(String name, int style, float size) {
-		int roundedSize = (int) Math.ceil(size);
-
-		boolean adding = false;
-
-		// @formatter:off
-		Map<Integer, Map<Integer, Pair<Font, Map<Float, Font>>>> namedFont      = null;
-		    Integer                                              roundedSizeObj = roundedSize;
-		             Map<Integer, Pair<Font, Map<Float, Font>>>  sizedFont      = null;
-		                 Integer                                 styleObj       = style;
-		                          Pair<Font, Map<Float, Font>>   styledFont     = null;
-		                               Font                      base           = null;
-		                                     Map<Float, Font>    basedFont      = null;
-		                                         Float           sizeObj        = size;
-		                                                Font     font           = null;
-		// @formatter:on
-
-		// name
-		namedFont = FONT_CACHE.get(name);
-		adding = namedFont == null;
-		if (adding) {
-			namedFont = new HashMap<>();
-			FONT_CACHE.put(name, namedFont);
-		}
-
-		// rounded size
-		if (!adding) {
-			sizedFont = namedFont.get(roundedSizeObj);
-			adding = sizedFont == null;
-		}
-		if (adding) {
-			sizedFont = new HashMap<>();
-			namedFont.put(roundedSizeObj, sizedFont);
-		}
-
-		// style
-		if (!adding) {
-			styledFont = sizedFont.get(styleObj);
-			adding = styledFont == null;
-		}
-		if (adding) {
-			styledFont = new Pair<Font, Map<Float, Font>>(new Font(name, style, roundedSizeObj), new HashMap<>());
-			sizedFont.put(styleObj, styledFont);
-		}
-		base = styledFont.first;
-		basedFont = styledFont.second;
-
-		// exact size
-		if (!adding) {
-			font = basedFont.get(sizeObj);
-			adding = font == null;
-		}
-		if (adding) {
-			font = base.deriveFont(size);
-			basedFont.put(sizeObj, font);
-		}
-
-		return font;
-	}
-
-	static Font resizeFont(Font font, float size) {
-		return getFont(font, font.getStyle(), size);
-	}
-
-	static Font restyleFont(Font font, int style) {
-		return getFont(font, style, font.getSize2D());
-	}
-
-	static Font getFont(Font font, int style, float size) {
-		return getFont(font.getName(), style, size);
+	private static String getRandomName() {
+		return NAMES[NAME_RANDY.nextInt(NAMES.length)];
 	}
 
 	private final CardLayout layout;
-
-	private static float getOSScaling() {
-		return 0f;
-	}
 
 	public GUI() {
 		super("MAXIT");
@@ -138,12 +85,93 @@ public class GUI extends JFrame {
 
 		JLabel title = new JLabel("MAXIT");
 		title.setFont(TITLE_FONT);
-		title.setForeground(Colors.BLUE);
+		title.setForeground(Colors.ON_BACKGROUND);
 
-		Pair<JLabel, JSpinner> size = mkSpinner("Grid Size", 1, null, 5, 1);
-		Pair<JLabel, JSpinner> max  = mkSpinner("Maximum Value", 0, null, 20, 1);
+		String n1 = getRandomName();
+		String n2 = getRandomName();
 
-//		JSpinner spinner
+		Pair<JLabel, JSpinner>          sizePair        = mkSpinner("Grid Size", 1, null, DEFAULT_GRID_SIZE, 1);
+		Pair<JLabel, JSpinner>          minPair         = mkSpinner("Minimum Value", null, 0, DEFAULT_MIN_VALUE, 1);
+		Pair<JLabel, JSpinner>          maxPair         = mkSpinner("Maximum Value", 0, null, DEFAULT_MAX_VALUE, 1);
+		Pair<JLabel, JComboBox<String>> type1Pair       = mkComboBox("Player 1 Type", "Human", "Human", "Computer");
+		Pair<JLabel, JTextField>        name1Pair       = mkField("Player 1 Name", n1);
+		Pair<JLabel, JComboBox<String>> type2Pair       = mkComboBox("Player 2 Type", "Computer", "Human", "Computer");
+		Pair<JLabel, JTextField>        name2Pair       = mkField("Player 2 Name", n2);
+		Pair<JLabel, JComboBox<String>> horizontalPair  = mkComboBox("Horizontal Player", n1, n1, n2);
+		Pair<JLabel, JSpinner>          cacheDepthPair  = mkSpinner("Maximum Cache Depth", 0, null, 5, 1);
+		Pair<JLabel, JSpinner>          searchDepthPair = mkSpinner("Maximum Search Depth", 1, null, 7, 1);
+
+		JSpinner          size        = sizePair.second;
+		JSpinner          min         = minPair.second;
+		JSpinner          max         = maxPair.second;
+		JComboBox<String> type1       = type1Pair.second;
+		JTextField        name1       = name1Pair.second;
+		JComboBox<String> type2       = type2Pair.second;
+		JTextField        name2       = name2Pair.second;
+		JComboBox<String> horizontal  = horizontalPair.second;
+		JSpinner          cacheDepth  = cacheDepthPair.second;
+		JSpinner          searchDepth = searchDepthPair.second;
+
+		SpinnerNumberModel minModel = (SpinnerNumberModel) min.getModel();
+		SpinnerNumberModel maxModel = (SpinnerNumberModel) max.getModel();
+
+		min.addChangeListener(e -> maxModel.setMinimum((Integer) minModel.getNumber()));
+		max.addChangeListener(e -> minModel.setMaximum((Integer) maxModel.getNumber()));
+
+		min.addFocusListener(new FocusAdapter() {
+
+			@Override
+			public void focusLost(FocusEvent e) {
+				minModel.setValue(Math.min((Integer) minModel.getNumber(), (Integer) maxModel.getNumber()));
+			}
+
+		});
+		max.addFocusListener(new FocusAdapter() {
+
+			@Override
+			public void focusLost(FocusEvent e) {
+				maxModel.setValue(Math.max((Integer) minModel.getNumber(), (Integer) maxModel.getNumber()));
+			}
+
+		});
+
+		class NameListener implements DocumentListener {
+
+			private int index;
+
+			private JTextField field;
+
+			public NameListener(int index, JTextField field) {
+				this.index = index;
+				this.field = field;
+			}
+
+			@Override
+			public void insertUpdate(DocumentEvent e) {
+				update();
+			}
+
+			@Override
+			public void removeUpdate(DocumentEvent e) {
+				update();
+			}
+
+			@Override
+			public void changedUpdate(DocumentEvent e) {
+				update();
+			}
+
+			private void update() {
+				int selIndex = horizontal.getSelectedIndex();
+				horizontal.removeItemAt(index);
+				horizontal.insertItemAt(field.getText(), index);
+				horizontal.setSelectedIndex(selIndex);
+			}
+
+		}
+
+		name1.getDocument().addDocumentListener(new NameListener(0, name1));
+		name2.getDocument().addDocumentListener(new NameListener(1, name2));
 
 		JButton playButton = new JButton("PLAY") {
 
@@ -158,42 +186,31 @@ public class GUI extends JFrame {
 
 		};
 		playButton.setFont(TITLE_FONT);
-		playButton.setForeground(Colors.BLUE);
+		playButton.setForeground(Colors.ON_BACKGROUND);
 		playButton.setBackground(Colors.BACKGROUND_1);
 		playButton.setBorder(null);
 		playButton.setFocusPainted(false);
-		playButton.setCursor(HAND_CURSOR);
+		playButton.setCursor(Cursors.HAND);
 
 		GUIUtils.vSpace(sizeSelect,
-				GUIUtils.hCenter(
-						title),
-				GUIUtils.hBox(
-						GUIUtils.vBox(
-								GUIUtils.vGlue(),
-								GUIUtils.hBox(
-										GUIUtils.hGlue(),
-										size.first),
-								GUIUtils.hBox(
-										GUIUtils.hGlue(),
-										max.first),
-								GUIUtils.vGlue()),
-						GUIUtils.vBox(
-								GUIUtils.vGlue(),
-								GUIUtils.hBox(
-										size.second,
-										GUIUtils.hGlue()),
-								GUIUtils.hBox(
-										max.second,
-										GUIUtils.hGlue()),
-								GUIUtils.vGlue())),
+				GUIUtils.hCenter(title),
+				mkInput(sizePair, minPair, maxPair, type1Pair, name1Pair, type2Pair, name2Pair, horizontalPair, cacheDepthPair, searchDepthPair),
 				GUIUtils.hCenter(playButton));
 
 		add(sizeSelect, "sizeSelect");
 
+		getRootPane().setDefaultButton(playButton);
+
 		GamePanel gamePanel = new GamePanel();
 		add(gamePanel, "gamePanel");
 
-		playButton.addActionListener(e -> gamePanel.setup((int) size.second.getValue(), (int) max.second.getValue()));
+		playButton.addActionListener(e -> {
+			if (min.hasFocus())
+				minModel.setValue(Math.min((Integer) minModel.getNumber(), (Integer) maxModel.getNumber()));
+			else if (max.hasFocus())
+				maxModel.setValue(Math.max((Integer) minModel.getNumber(), (Integer) maxModel.getNumber()));
+			gamePanel.setup((int) size.getValue(), (int) min.getValue(), (int) max.getValue(), type1.getSelectedIndex() == 0, name1.getText(), type2.getSelectedIndex() == 0, name2.getText(), horizontal.getSelectedIndex() == 0, (int) cacheDepth.getValue(), (int) searchDepth.getValue(), this);
+		});
 
 		layout.show(getContentPane(), "sizeSelect");
 
@@ -208,99 +225,92 @@ public class GUI extends JFrame {
 	}
 
 	private static Pair<JLabel, JSpinner> mkSpinner(String name, Integer minimum, Integer maximum, Integer initial, Integer step) {
-		JLabel label = new JLabel(name + ": ");
-		label.setFont(NORMAL_FONT);
-		label.setMaximumSize(label.getPreferredSize());
-		label.setForeground(Colors.ON_BACKGROUND);
+		JSpinner spinner = new JSpinner(new SpinnerNumberModel(initial, minimum, maximum, step));
 
-		JSpinner spinner = new JSpinner(new SpinnerNumberModel(5, 1, null, 1));
+		setupComponent(spinner);
 
-		spinner.setFont(NORMAL_FONT);
-		spinner.setMaximumSize(spinner.getPreferredSize());
+//		spinner.setMaximumSize(spinner.getPreferredSize());
 
-		JComponent editor       = (JSpinner.NumberEditor) spinner.getEditor();
-		JTextField spinnerField = (JTextField) editor.getComponent(0);
-		JButton    incButton    = (JButton) spinner.getComponent(0);
-		JButton    decButton    = (JButton) spinner.getComponent(1);
+		JComponent editor = (JSpinner.NumberEditor) spinner.getEditor();
 
 		spinner.setBorder(null);
 
 		editor.setBorder(null);
 
+		JTextField spinnerField = (JTextField) editor.getComponent(0);
 		spinnerField.setBorder(BorderFactory.createMatteBorder(1, 1, 1, 0, Colors.ON_BACKGROUND));
-		spinnerField.setColumns(3);
-		spinnerField.setBackground(Colors.BACKGROUND_1);
-		spinnerField.setForeground(Colors.ON_BACKGROUND);
+		spinnerField.setColumns(SPINNER_COLUMNS);
+		spinnerField.setCaretColor(Colors.ON_BACKGROUND);
+		setupComponent(spinnerField);
 
-		incButton.setBackground(Colors.BACKGROUND_1);
-		incButton.setBorder(BorderFactory.createMatteBorder(1, 1, 0, 1, Colors.ON_BACKGROUND));
-		incButton.setCursor(HAND_CURSOR);
-		incButton.setFocusPainted(false);
+		setupButton((JButton) spinner.getComponent(0), 1, 1, 0, 1); // Increment
+		setupButton((JButton) spinner.getComponent(1), 1, 1, 1, 1); // Decrement
 
-		decButton.setBackground(Colors.BACKGROUND_1);
-		decButton.setBorder(BorderFactory.createMatteBorder(1, 1, 1, 1, Colors.ON_BACKGROUND));
-		decButton.setCursor(HAND_CURSOR);
-		decButton.setFocusPainted(false);
-
-		return new Pair<>(label, spinner);
+		return new Pair<>(mkLabel(name), spinner);
 	}
 
-//	static Box.Filler hGlue() {
-//		return (Box.Filler) Box.createHorizontalGlue();
-//	}
-//
-//	static Box.Filler vGlue() {
-//		return (Box.Filler) Box.createVerticalGlue();
-//	}
-//
-//	static Box.Filler glue() {
-//		return (Box.Filler) Box.createGlue();
-//	}
-//
-//	static Box.Filler hStrut(int size) {
-//		return (Box.Filler) Box.createHorizontalStrut(size);
-//	}
-//
-//	static Box.Filler vStrut(int size) {
-//		return (Box.Filler) Box.createVerticalStrut(size);
-//	}
-//
-//	static Box.Filler rigidArea(int width, int height) {
-//		return rArea(new Dimension(width, height));
-//	}
-//
-//	static Box.Filler rArea(Dimension dim) {
-//		return (Box.Filler) Box.createRigidArea(dim);
-//	}
-//
-//	static Box hBox(Component... children) {
-//		return setup(Box.createHorizontalBox(), children);
-//	}
-//
-//	static Box vBox(Component... children) {
-//		return setup(Box.createVerticalBox(), children);
-//	}
-//
-//	static BoxLayout hLayout(Container parent) {
-//		return layout(parent, BoxLayout.X_AXIS);
-//	}
-//
-//	static BoxLayout vLayout(Container parent) {
-//		return layout(parent, BoxLayout.Y_AXIS);
-//	}
-//
-//	static BoxLayout layout(Container parent, int axis) {
-//		BoxLayout layout = new BoxLayout(parent, axis);
-//		if (parent != null)
-//			parent.setLayout(layout);
-//		return layout;
-//	}
-//
-//	static <T extends Container> T setup(T parent, Component... children) {
-//		if (parent != null)
-//			for (Component child : children)
-//				parent.add(child);
-//		return parent;
-//	}
+	private static Pair<JLabel, JTextField> mkField(String name, String text) {
+		JTextField field = new JTextField(text, FIELD_COLUMNS);
+
+		field.setBorder(BorderFactory.createMatteBorder(1, 1, 1, 1, Colors.ON_BACKGROUND));
+		setupComponent(field);
+//		field.setMaximumSize(field.getPreferredSize());
+		field.setCaretColor(Colors.ON_BACKGROUND);
+
+		return new Pair<>(mkLabel(name), field);
+	}
+
+	private static Pair<JLabel, JComboBox<String>> mkComboBox(String name, String initial, String... items) {
+		JComboBox<String> comboBox = new JComboBox<>(items);
+
+		comboBox.setSelectedItem(initial);
+
+		comboBox.setBorder(BorderFactory.createMatteBorder(1, 1, 1, 1, Colors.ON_BACKGROUND));
+		setupComponent(comboBox);
+
+		String prototype = "";
+		for (int i = 0; i < FIELD_COLUMNS; i++)
+			prototype += "#";
+		comboBox.setPrototypeDisplayValue(prototype);
+
+		return new Pair<>(mkLabel(name), comboBox);
+	}
+
+	private static JLabel mkLabel(String name) {
+		JLabel label = new JLabel(name + ": ");
+		label.setFont(NORMAL_FONT);
+		label.setForeground(Colors.ON_BACKGROUND);
+		return label;
+	}
+
+	private static void setupButton(JButton button, int topBorderThickness, int leftBorderThickness, int bottomBorderThickness, int rightBorderThickness) {
+		setupComponent(button);
+		button.setBorder(BorderFactory.createMatteBorder(topBorderThickness, leftBorderThickness, bottomBorderThickness, rightBorderThickness, Colors.ON_BACKGROUND));
+		button.setCursor(Cursors.HAND);
+		button.setFocusPainted(false);
+	}
+
+	private static void setupComponent(JComponent comp) {
+		comp.setBackground(Colors.BACKGROUND_1);
+		comp.setForeground(Colors.ON_BACKGROUND);
+		comp.setFont(NORMAL_FONT);
+	}
+
+	@SafeVarargs
+	private static Box mkInput(Pair<JLabel, ? extends Component>... pairs) {
+		Box col1 = GUIUtils.vBox(GUIUtils.vGlue());
+		Box col2 = GUIUtils.vBox(GUIUtils.vGlue());
+		for (Pair<JLabel, ? extends Component> pair : pairs) {
+			// Align Rows
+			pair.first.setPreferredSize(new Dimension(pair.first.getPreferredSize().width, pair.second.getPreferredSize().height));
+			pair.second.setMaximumSize(pair.second.getPreferredSize());
+
+			col1.add(GUIUtils.hBox(GUIUtils.hGlue(), pair.first));
+			col2.add(GUIUtils.hBox(pair.second, GUIUtils.hGlue()));
+		}
+		col1.add(GUIUtils.vGlue());
+		col2.add(GUIUtils.vGlue());
+		return GUIUtils.hBox(col1, col2);
+	}
 
 }
