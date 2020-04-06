@@ -34,9 +34,11 @@ public class GUI extends JFrame {
 
 	private static final long serialVersionUID = 1L;
 
-	private static final int DEFAULT_GRID_SIZE = 10;
-	private static final int DEFAULT_MIN_VALUE = -9;
-	private static final int DEFAULT_MAX_VALUE = 11;
+	private static final int DEFAULT_GRID_SIZE    = 10;
+	private static final int DEFAULT_MIN_VALUE    = -9;
+	private static final int DEFAULT_MAX_VALUE    = 11;
+	private static final int DEFAULT_CACHE_DEPTH  = 11;
+	private static final int DEFAULT_SEARCH_DEPTH = 11;
 
 	private static final int SPINNER_COLUMNS = 7;
 	private static final int FIELD_COLUMNS   = 15;
@@ -98,8 +100,8 @@ public class GUI extends JFrame {
 		Pair<JLabel, JComboBox<String>> type2Pair       = mkComboBox("Player 2 Type", "Computer", "Human", "Computer");
 		Pair<JLabel, JTextField>        name2Pair       = mkField("Player 2 Name", n2);
 		Pair<JLabel, JComboBox<String>> horizontalPair  = mkComboBox("Horizontal Player", n1, n1, n2);
-		Pair<JLabel, JSpinner>          cacheDepthPair  = mkSpinner("Maximum Cache Depth", 0, null, 5, 1);
-		Pair<JLabel, JSpinner>          searchDepthPair = mkSpinner("Maximum Search Depth", 1, null, 7, 1);
+		Pair<JLabel, JSpinner>          cacheDepthPair  = mkSpinner("Maximum Cache Depth", 0, null, DEFAULT_CACHE_DEPTH, 1);
+		Pair<JLabel, JSpinner>          searchDepthPair = mkSpinner("Maximum Search Depth", 1, null, DEFAULT_SEARCH_DEPTH, 1);
 
 		JSpinner          size        = sizePair.second;
 		JSpinner          min         = minPair.second;

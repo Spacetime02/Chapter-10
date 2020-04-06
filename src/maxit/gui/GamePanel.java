@@ -31,7 +31,7 @@ public class GamePanel extends JPanel {
 		setBackground(Colors.BACKGROUND_0);
 	}
 
-	void setup(int gridSize, int minValue, int maxValue, boolean human1, String name1, boolean human2, String name2, boolean horizontal1, int searchDepth, int cacheDepth, GUI gui) {
+	void setup(int gridSize, int minValue, int maxValue, boolean human1, String name1, boolean human2, String name2, boolean horizontal1, int cacheDepth, int searchDepth, GUI gui) {
 		if (minValue > maxValue)
 			throw new IllegalArgumentException("minValue (" + minValue + ") > maxValue (" + maxValue + ").");
 
@@ -43,7 +43,6 @@ public class GamePanel extends JPanel {
 
 		JScrollPane scrollPane = new JScrollPane(gridPositioner);
 		scrollPane.setBackground(Colors.BACKGROUND_0);
-//		scrollPane.getVerticalScrollBar().setUI(new BasicScrollBarUI());
 
 		gridPanel = new GridPanel(gridSize, minValue, maxValue, human1, name1, human2, name2, horizontal1, cacheDepth, searchDepth, scrollPane, score1 -> EventQueue.invokeLater(() -> scoreLabel1.setText(Integer.toString(score1))), score2 -> EventQueue.invokeLater(() -> scoreLabel2.setText(Integer.toString(score2))));
 

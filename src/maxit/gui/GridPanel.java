@@ -15,7 +15,6 @@ import java.awt.Stroke;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
-import java.io.PrintStream;
 import java.util.Arrays;
 import java.util.function.IntConsumer;
 
@@ -342,22 +341,6 @@ class GridPanel extends JPanel {
 	@Override
 	public Dimension getMaximumSize() {
 		return computeDimension();
-	}
-
-	private void printState() {
-		PrintStream o = System.out;
-
-		String f = "%16s:%6d%n";
-
-		assert getSize().height == getSize().width;
-
-		o.printf(f, "Naive Size", computeNaiveSize());
-		o.printf(f, "Size", computeUnroundedSize());
-		o.printf(f, "Min Cell Size", minCellSize);
-		o.printf(f, "Calc Size", computeSize());
-		o.printf(f, "Actual Height", getHeight());
-		o.printf(f, "Actual Width", getWidth());
-		o.println();
 	}
 
 	private class GridListener implements MouseListener, MouseMotionListener {

@@ -1,8 +1,12 @@
 package maxit.gui;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Random;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -18,13 +22,15 @@ import maxit.util.tuple.Pair;
 
 public class RecursiveComputerPlayer extends ComputerPlayer {
 
-	private final int maxCacheDepth;
-	private final int maxRecursiveDepth;
+	private static final Random SHUFFLE_RANDY = new Random();
 
-	public RecursiveComputerPlayer(String name, int maxCacheDepth, int maxRecursiveDepth) {
+	private final int maxCacheDepth;
+	private final int maxSearchDepth;
+
+	public RecursiveComputerPlayer(String name, int maxCacheDepth, int maxSearchDepth) {
 		super(name);
 		this.maxCacheDepth = maxCacheDepth;
-		this.maxRecursiveDepth = maxRecursiveDepth;
+		this.maxSearchDepth = maxSearchDepth;
 	}
 
 	@Override
@@ -101,21 +107,27 @@ public class RecursiveComputerPlayer extends ComputerPlayer {
 
 		@Override
 		public Integer call() throws Exception {
-			return evaluateRecursively(Integer.MIN_VALUE, Integer.MAX_VALUE, 1, true);
+			try {
+				return evaluateRecursively(Integer.MIN_VALUE, Integer.MAX_VALUE, 1, true);
+			} catch (NullPointerException e) {
+				e.printStackTrace();
+				return null;
+			}
 		}
 
 		private int evaluateRecursively(int alpha, int beta, int depth, boolean oppPlaying) {
-			boolean writeCache = depth < maxCacheDepth;
+			boolean writeCache = depth <= maxCacheDepth;
+			writeCache = false;
 
 			Integer value = readCache();
 
 			if (value != null)
 				return value;
 
-			if (depth >= maxRecursiveDepth || !MAXIT.hasRemainingMoves(currentPos, takenGrid, writeCache)) {
+			if (depth >= maxSearchDepth || !MAXIT.hasRemainingMoves(currentPos, takenGrid, horizontal ^ oppPlaying)) {
 				value = score - oppScore;
 				if (writeCache)
-					writeCache(value);
+					writeCache(value, depth);
 				return value;
 			}
 
@@ -123,16 +135,23 @@ public class RecursiveComputerPlayer extends ComputerPlayer {
 			int nextVal;
 			int sc;
 
-			Position[] validMoves = MAXIT.getValidMoves(takenGrid, currentPos, horizontal ^ oppPlaying);
+			Position[]     validMoves    = MAXIT.getValidMoves(takenGrid, currentPos, horizontal ^ oppPlaying);
+			List<Position> validMoveList = new ArrayList<>(Arrays.asList(validMoves));
+			Collections.shuffle(validMoveList, SHUFFLE_RANDY);
+			validMoveList.toArray(validMoves);
+
 			for (Position move : validMoves) {
 				sc = MAXIT.simulateMove(valueGrid, takenGrid, move, oppPlaying ? oppScore : score);
 				if (oppPlaying)
 					oppScore = sc;
 				else
 					score = sc;
+				Position temp = currentPos;
+				currentPos = move;
 
 				nextVal = evaluateRecursively(alpha, beta, depth + 1, !oppPlaying);
 
+				currentPos = temp;
 				sc = MAXIT.undoSimulateMove(valueGrid, takenGrid, move, oppPlaying ? oppScore : score);
 				if (oppPlaying)
 					oppScore = sc;
@@ -150,7 +169,7 @@ public class RecursiveComputerPlayer extends ComputerPlayer {
 				}
 			}
 			if (writeCache)
-				writeCache(val);
+				writeCache(val, depth);
 			return val;
 		}
 
@@ -158,7 +177,7 @@ public class RecursiveComputerPlayer extends ComputerPlayer {
 			return cache.get(new Pair<>(new Pair<>(new TakenGridWrapper(), currentPos), new IntPair(score, oppScore)));
 		}
 
-		private Integer writeCache(Integer value) {
+		private Integer writeCache(Integer value, int depth) {
 			return cache.put(new Pair<>(new Pair<>(new TakenGridWrapper(), currentPos), new IntPair(score, oppScore)), value);
 		}
 
@@ -177,7 +196,12 @@ public class RecursiveComputerPlayer extends ComputerPlayer {
 			public boolean equals(Object obj) {
 				if (!(obj instanceof TakenGridWrapper))
 					return false;
-				return Arrays.deepEquals(grid, ((TakenGridWrapper) obj).grid);
+				TakenGridWrapper tgw = (TakenGridWrapper) obj;
+				for (int i = 0; i < grid.length; i++)
+					for (int j = 0; j < grid.length; j++)
+						if (grid[i][j] != tgw.grid[i][j])
+							return false;
+				return true;
 			}
 
 			@Override
