@@ -48,7 +48,7 @@ public class GUI extends JFrame {
 	private static final Font NORMAL_FONT = Fonts.get(Font.MONOSPACED, Font.PLAIN, 20f);
 
 	private static String[] loadNames() {
-		try (Scanner nameScanner = new Scanner(new File("MAXIT names.txt"))) {
+		try (Scanner nameScanner = new Scanner(new File("names.txt"))) {
 			List<String> nameList = new ArrayList<>();
 			while (nameScanner.hasNext())
 				nameList.add(nameScanner.next());
