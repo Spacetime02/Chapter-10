@@ -55,11 +55,15 @@ public class RecursiveComputerPlayer extends ComputerPlayer {
 
 		String moveCountStr = Integer.toString(moveCount);
 
+		String formatFormatFormat = "  Move %%%%%%dd/%%s at %%%ds: %%%%6d%%%%n";
+
+		String formatFormat = String.format(formatFormatFormat, 4 + Integer.toString(gridSize).length());
+
 		System.out.println(playerName);
 		for (int i = 0; i < moveCount; i++) {
 			Position move = validMoves[i];
 
-			String format = "  Move %" + moveCountStr.length() + "d/" + moveCountStr + " at " + String.format("%8s", move) + ": %6d%n";
+			String format = String.format(formatFormat, moveCountStr.length(), moveCountStr, move);
 
 			IntConsumer callback = value -> System.out.printf(format, counter.incrementAndGet(), value);
 
@@ -69,7 +73,7 @@ public class RecursiveComputerPlayer extends ComputerPlayer {
 			for (int j = 0; j < gridSize; j++)
 				taken[j] = Arrays.copyOf(takenGrid[j], gridSize);
 
-			futures[i] = threadPool.submit(new Evaluator(valueGrid, taken, validMoves[i], !horizontal, score, oppScore, callback));
+			futures[i] = threadPool.submit(new Evaluator(valueGrid, taken, validMoves[i], horizontal, score, oppScore, callback));
 
 			score = MAXIT.undoSimulateMove(valueGrid, takenGrid, validMoves[i], score);
 		}
