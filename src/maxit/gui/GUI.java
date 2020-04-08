@@ -223,16 +223,13 @@ public class GUI extends JFrame {
 
 	private static Pair<JLabel, JSpinner> mkSpinner(String name, Integer minimum, Integer maximum, Integer initial, Integer step) {
 		JSpinner spinner = new JSpinner(new SpinnerNumberModel(initial, minimum, maximum, step));
+		spinner.setBorder(null);
 
 		setupComponent(spinner);
 
-//		spinner.setMaximumSize(spinner.getPreferredSize());
-
-		JComponent editor = (JSpinner.NumberEditor) spinner.getEditor();
-
-		spinner.setBorder(null);
-
+		JSpinner.NumberEditor editor = (JSpinner.NumberEditor) spinner.getEditor();
 		editor.setBorder(null);
+		editor.getFormat().setGroupingUsed(false);
 
 		JTextField spinnerField = (JTextField) editor.getComponent(0);
 		spinnerField.setBorder(BorderFactory.createMatteBorder(1, 1, 1, 0, Colors.ON_BACKGROUND));
