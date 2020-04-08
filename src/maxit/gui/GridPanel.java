@@ -91,13 +91,13 @@ class GridPanel extends JPanel {
 		}).start();
 	}
 
-	void setup(int gridSize, int minSize, int maxValue, boolean human1, String name1, boolean human2, String name2, boolean horizontal1, int cacheDepth, int searchDepth, IntConsumer scoreCallback1, IntConsumer scoreCallback2) {
+	void setup(int gridSize, int minValue, int maxValue, boolean human1, String name1, boolean human2, String name2, boolean horizontal1, int cacheDepth, int searchDepth, IntConsumer scoreCallback1, IntConsumer scoreCallback2) {
 
 		maxStrLength = 1;
 
 		Player player1 = human1 ? new HumanPlayer(name1) : new RecursiveComputerPlayer(name1, cacheDepth, searchDepth);
 		Player player2 = human2 ? new HumanPlayer(name2) : new RecursiveComputerPlayer(name2, cacheDepth, searchDepth);
-		game = new MAXIT(gridSize, minSize, maxValue, player1, player2, horizontal1, () -> EventQueue.invokeLater(() -> {
+		game = new MAXIT(gridSize, minValue, maxValue, player1, player2, horizontal1, () -> EventQueue.invokeLater(() -> {
 			Point p = getMousePosition();
 			listener.update(p != null && listener.clickable(processPos(p)));
 		}), scoreCallback1, scoreCallback2);
