@@ -4,8 +4,6 @@ import java.awt.CardLayout;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Font;
-import java.awt.event.FocusAdapter;
-import java.awt.event.FocusEvent;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
@@ -25,8 +23,6 @@ import javax.swing.JSpinner;
 import javax.swing.JTextField;
 import javax.swing.SpinnerNumberModel;
 import javax.swing.UIManager;
-import javax.swing.event.DocumentEvent;
-import javax.swing.event.DocumentListener;
 
 import othello.util.tuple.Pair;
 
@@ -87,88 +83,88 @@ public class GUI extends JFrame {
 		String n1 = getRandomName();
 		String n2 = getRandomName();
 
-		Pair<JLabel, JSpinner>          sizePair        = mkSpinner("Grid Size", 1, null, Defaults.GRID_SIZE, 1);
-		Pair<JLabel, JSpinner>          minPair         = mkSpinner("Minimum Value", null, 0, Defaults.MIN_VALUE, 1);
-		Pair<JLabel, JSpinner>          maxPair         = mkSpinner("Maximum Value", 0, null, Defaults.MAX_VALUE, 1);
-		Pair<JLabel, JComboBox<String>> type1Pair       = mkComboBox("Player 1 Type", "Human", "Human", "Computer");
-		Pair<JLabel, JTextField>        name1Pair       = mkField("Player 1 Name", n1);
-		Pair<JLabel, JComboBox<String>> type2Pair       = mkComboBox("Player 2 Type", "Computer", "Human", "Computer");
-		Pair<JLabel, JTextField>        name2Pair       = mkField("Player 2 Name", n2);
-		Pair<JLabel, JComboBox<String>> horizontalPair  = mkComboBox("Horizontal Player", n1, n1, n2);
-		Pair<JLabel, JSpinner>          cacheDepthPair  = mkSpinner("Maximum Cache Depth", 0, null, Defaults.CACHE_DEPTH, 1);
-		Pair<JLabel, JSpinner>          searchDepthPair = mkSpinner("Maximum Search Depth", 1, null, Defaults.SEARCH_DEPTH, 1);
+		Pair<JLabel, JSpinner> sizePair = mkSpinner("Grid Size", 1, null, Defaults.GRID_SIZE, 1);
+//		Pair<JLabel, JSpinner>          minPair         = mkSpinner("Minimum Value", null, 0, Defaults.MIN_VALUE, 1);
+//		Pair<JLabel, JSpinner>          maxPair         = mkSpinner("Maximum Value", 0, null, Defaults.MAX_VALUE, 1);
+		Pair<JLabel, JComboBox<String>> blackTypePair = mkComboBox("Black Player Type", "Human", "Human", "Computer");
+		Pair<JLabel, JTextField>        blackNamePair = mkField("Black Player Name", n1);
+		Pair<JLabel, JComboBox<String>> whiteTypePair = mkComboBox("White Player Type", "Computer", "Human", "Computer");
+		Pair<JLabel, JTextField>        whiteNamePair = mkField("White Player Name", n2);
+//		Pair<JLabel, JComboBox<String>> horizontalPair  = mkComboBox("Horizontal Player", n1, n1, n2);
+		Pair<JLabel, JSpinner> cacheDepthPair  = mkSpinner("Maximum Cache Depth", 0, null, Defaults.CACHE_DEPTH, 1);
+		Pair<JLabel, JSpinner> searchDepthPair = mkSpinner("Maximum Search Depth", 1, null, Defaults.SEARCH_DEPTH, 1);
 
-		JSpinner          size        = sizePair.second;
-		JSpinner          min         = minPair.second;
-		JSpinner          max         = maxPair.second;
-		JComboBox<String> type1       = type1Pair.second;
-		JTextField        name1       = name1Pair.second;
-		JComboBox<String> type2       = type2Pair.second;
-		JTextField        name2       = name2Pair.second;
-		JComboBox<String> horizontal  = horizontalPair.second;
-		JSpinner          cacheDepth  = cacheDepthPair.second;
-		JSpinner          searchDepth = searchDepthPair.second;
+		JSpinner size = sizePair.second;
+//		JSpinner          min         = minPair.second;
+//		JSpinner          max         = maxPair.second;
+		JComboBox<String> blackType = blackTypePair.second;
+		JTextField        blackName = blackNamePair.second;
+		JComboBox<String> whiteType = whiteTypePair.second;
+		JTextField        whiteName = whiteNamePair.second;
+//		JComboBox<String> horizontal  = horizontalPair.second;
+		JSpinner cacheDepth  = cacheDepthPair.second;
+		JSpinner searchDepth = searchDepthPair.second;
 
-		SpinnerNumberModel minModel = (SpinnerNumberModel) min.getModel();
-		SpinnerNumberModel maxModel = (SpinnerNumberModel) max.getModel();
+//		SpinnerNumberModel minModel = (SpinnerNumberModel) min.getModel();
+//		SpinnerNumberModel maxModel = (SpinnerNumberModel) max.getModel();
 
-		min.addChangeListener(e -> maxModel.setMinimum((Integer) minModel.getNumber()));
-		max.addChangeListener(e -> minModel.setMaximum((Integer) maxModel.getNumber()));
+//		min.addChangeListener(e -> maxModel.setMinimum((Integer) minModel.getNumber()));
+//		max.addChangeListener(e -> minModel.setMaximum((Integer) maxModel.getNumber()));
 
-		min.addFocusListener(new FocusAdapter() {
+//		min.addFocusListener(new FocusAdapter() {
+//
+//			@Override
+//			public void focusLost(FocusEvent e) {
+//				minModel.setValue(Math.min((Integer) minModel.getNumber(), (Integer) maxModel.getNumber()));
+//			}
+//
+//		});
+//		max.addFocusListener(new FocusAdapter() {
+//
+//			@Override
+//			public void focusLost(FocusEvent e) {
+//				maxModel.setValue(Math.max((Integer) minModel.getNumber(), (Integer) maxModel.getNumber()));
+//			}
+//
+//		});
 
-			@Override
-			public void focusLost(FocusEvent e) {
-				minModel.setValue(Math.min((Integer) minModel.getNumber(), (Integer) maxModel.getNumber()));
-			}
+//		class NameListener implements DocumentListener {
+//
+//			private int index;
+//
+//			private JTextField field;
+//
+//			public NameListener(int index, JTextField field) {
+//				this.index = index;
+//				this.field = field;
+//			}
+//
+//			@Override
+//			public void insertUpdate(DocumentEvent e) {
+//				update();
+//			}
+//
+//			@Override
+//			public void removeUpdate(DocumentEvent e) {
+//				update();
+//			}
+//
+//			@Override
+//			public void changedUpdate(DocumentEvent e) {
+//				update();
+//			}
+//
+//			private void update() {
+//				int selIndex = horizontal.getSelectedIndex();
+//				horizontal.removeItemAt(index);
+//				horizontal.insertItemAt(field.getText(), index);
+//				horizontal.setSelectedIndex(selIndex);
+//			}
+//
+//		}
 
-		});
-		max.addFocusListener(new FocusAdapter() {
-
-			@Override
-			public void focusLost(FocusEvent e) {
-				maxModel.setValue(Math.max((Integer) minModel.getNumber(), (Integer) maxModel.getNumber()));
-			}
-
-		});
-
-		class NameListener implements DocumentListener {
-
-			private int index;
-
-			private JTextField field;
-
-			public NameListener(int index, JTextField field) {
-				this.index = index;
-				this.field = field;
-			}
-
-			@Override
-			public void insertUpdate(DocumentEvent e) {
-				update();
-			}
-
-			@Override
-			public void removeUpdate(DocumentEvent e) {
-				update();
-			}
-
-			@Override
-			public void changedUpdate(DocumentEvent e) {
-				update();
-			}
-
-			private void update() {
-				int selIndex = horizontal.getSelectedIndex();
-				horizontal.removeItemAt(index);
-				horizontal.insertItemAt(field.getText(), index);
-				horizontal.setSelectedIndex(selIndex);
-			}
-
-		}
-
-		name1.getDocument().addDocumentListener(new NameListener(0, name1));
-		name2.getDocument().addDocumentListener(new NameListener(1, name2));
+//		blackName.getDocument().addDocumentListener(new NameListener(0, blackName));
+//		whiteName.getDocument().addDocumentListener(new NameListener(1, whiteName));
 
 		JButton playButton = new JButton("PLAY") {
 
@@ -191,7 +187,7 @@ public class GUI extends JFrame {
 
 		GUIUtils.vSpace(sizeSelect,
 				GUIUtils.hCenter(title),
-				mkInput(sizePair, minPair, maxPair, type1Pair, name1Pair, type2Pair, name2Pair, horizontalPair, cacheDepthPair, searchDepthPair),
+				mkInput(sizePair, blackTypePair, blackNamePair, whiteTypePair, whiteNamePair, cacheDepthPair, searchDepthPair),
 				GUIUtils.hCenter(playButton));
 
 		add(sizeSelect, "sizeSelect");
@@ -202,11 +198,12 @@ public class GUI extends JFrame {
 		add(gamePanel, "gamePanel");
 
 		playButton.addActionListener(e -> {
-			if (min.hasFocus())
-				minModel.setValue(Math.min((Integer) minModel.getNumber(), (Integer) maxModel.getNumber()));
-			else if (max.hasFocus())
-				maxModel.setValue(Math.max((Integer) minModel.getNumber(), (Integer) maxModel.getNumber()));
-			gamePanel.setup((int) size.getValue(), (int) min.getValue(), (int) max.getValue(), type1.getSelectedIndex() == 0, name1.getText(), type2.getSelectedIndex() == 0, name2.getText(), horizontal.getSelectedIndex() == 0, (int) cacheDepth.getValue(), (int) searchDepth.getValue(), this);
+//			if (min.hasFocus())
+//				minModel.setValue(Math.min((Integer) minModel.getNumber(), (Integer) maxModel.getNumber()));
+//			else if (max.hasFocus())
+//				maxModel.setValue(Math.max((Integer) minModel.getNumber(), (Integer) maxModel.getNumber()));
+			gamePanel.setup((int) size.getValue(), blackType.getSelectedIndex() == 0, blackName.getText(), whiteType.getSelectedIndex() == 0, whiteName.getText(), (int) cacheDepth.getValue(), (int) searchDepth.getValue(), this);
+//			gamePanel.setup((int) size.getValue(), (int) min.getValue(), (int) max.getValue(), type1.getSelectedIndex() == 0, name1.getText(), type2.getSelectedIndex() == 0, name2.getText(), horizontal.getSelectedIndex() == 0, (int) cacheDepth.getValue(), (int) searchDepth.getValue(), this);
 		});
 
 		layout.show(getContentPane(), "sizeSelect");

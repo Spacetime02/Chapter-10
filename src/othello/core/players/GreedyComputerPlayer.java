@@ -10,7 +10,7 @@ public class GreedyComputerPlayer extends ComputerPlayer {
 	}
 
 	@Override
-	protected Position computeMove(boolean[][] whiteGrid, boolean[][] takenGrid, boolean isWhite, String playerName) {
+	protected Position computeMove(boolean[][] curGrid, boolean[][] takenGrid, int curScore, int oppScore, String playerName) {
 		Position[] valid = Othello.getValidMoves(takenGrid, currentPos, horizontal);
 
 		Position best = null;

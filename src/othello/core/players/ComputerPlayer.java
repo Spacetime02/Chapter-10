@@ -13,10 +13,10 @@ public abstract class ComputerPlayer extends Player {
 	}
 
 	@Override
-	public Position move(boolean[][] curGrid, boolean[][] takenGrid, int score, int oppScore, String playerName, Supplier<Position> userInput) {
+	public Position move(boolean[][] curGrid, boolean[][] takenGrid, int curScore, int oppScore, String playerName, Supplier<Position> userInput) {
 		long end = System.currentTimeMillis() + MIN_DURATION;
 
-		Position movePos = computeMove(curGrid, takenGrid, score, oppScore, playerName);
+		Position movePos = computeMove(curGrid, takenGrid, curScore, oppScore, playerName);
 
 		Long remainingTime;
 		while ((remainingTime = end - System.currentTimeMillis()) > 0)
@@ -28,6 +28,6 @@ public abstract class ComputerPlayer extends Player {
 		return movePos;
 	}
 
-	protected abstract Position computeMove(boolean[][] curGrid, boolean[][] takenGrid, int score, int oppScore, String playerName);
+	protected abstract Position computeMove(boolean[][] curGrid, boolean[][] takenGrid, int curScore, int oppScore, String playerName);
 
 }

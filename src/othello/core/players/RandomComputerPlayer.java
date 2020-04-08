@@ -14,8 +14,8 @@ public class RandomComputerPlayer extends ComputerPlayer {
 	}
 
 	@Override
-	protected Position computeMove(int[][] valueGrid, boolean[][] takenGrid, Position currentPos, boolean horizontal, int score, int oppScore, String playerName) {
-		Position[] valid = Othello.getValidMoves(takenGrid, currentPos, horizontal);
+	protected Position computeMove(boolean[][] curGrid, boolean[][] takenGrid, int curScore, int oppScore, String playerName) {
+		Position[] valid = Othello.getValidMoves(curGrid, takenGrid);
 		return valid[RANDY.nextInt(valid.length)];
 	}
 

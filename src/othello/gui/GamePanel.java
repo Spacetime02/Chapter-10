@@ -21,8 +21,8 @@ public class GamePanel extends JPanel {
 
 	private static final Font NAME_FONT = Fonts.get(Font.MONOSPACED, Font.BOLD, 20);
 
-	private static JLabel scoreLabel1;
-	private static JLabel scoreLabel2;
+	private static JLabel blackScoreLabel;
+	private static JLabel whiteScoreLabel;
 
 	private JPanel gridPanel;
 
@@ -31,10 +31,7 @@ public class GamePanel extends JPanel {
 		setBackground(Colors.BACKGROUND_0);
 	}
 
-	void setup(int gridSize, int minValue, int maxValue, boolean human1, String name1, boolean human2, String name2, boolean horizontal1, int cacheDepth, int searchDepth, GUI gui) {
-		if (minValue > maxValue)
-			throw new IllegalArgumentException("minValue (" + minValue + ") > maxValue (" + maxValue + ").");
-
+	void setup(int gridSize, boolean blackHuman, String blackName, boolean whiteHuman, String whiteName, int cacheDepth, int searchDepth, GUI gui) {
 		JPanel parentPanel = new JPanel(new BorderLayout());
 		parentPanel.setBackground(Colors.BACKGROUND_0);
 
@@ -44,13 +41,14 @@ public class GamePanel extends JPanel {
 		JScrollPane scrollPane = new JScrollPane(gridPositioner);
 		scrollPane.setBackground(Colors.BACKGROUND_0);
 
-		gridPanel = new GridPanel(gridSize, minValue, maxValue, human1, name1, human2, name2, horizontal1, cacheDepth, searchDepth, scrollPane, score1 -> EventQueue.invokeLater(() -> scoreLabel1.setText(Integer.toString(score1))), score2 -> EventQueue.invokeLater(() -> scoreLabel2.setText(Integer.toString(score2))));
+		gridPanel = new GridPanel(gridSize, blackHuman, blackName, whiteHuman, whiteName, cacheDepth, searchDepth, scrollPane, blackScore -> EventQueue.invokeLater(() -> blackScoreLabel.setText(Integer.toString(blackScore))), score2 -> EventQueue.invokeLater(() -> whiteScoreLabel.setText(Integer.toString(score2))));
+//		gridPanel = new GridPanel(gridSize, minValue, maxValue, human1, name1, human2, name2, horizontal1, cacheDepth, searchDepth, scrollPane, score1 -> EventQueue.invokeLater(() -> scoreLabel1.setText(Integer.toString(score1))), score2 -> EventQueue.invokeLater(() -> scoreLabel2.setText(Integer.toString(score2))));
 
-		Pair<JLabel, Box> scoreBox1 = mkScoreBox(name1, Colors.BLUE);
-		Pair<JLabel, Box> scoreBox2 = mkScoreBox(name2, Colors.RED);
+		Pair<JLabel, Box> scoreBox1 = mkScoreBox(blackName, Colors.BLUE);
+		Pair<JLabel, Box> scoreBox2 = mkScoreBox(whiteName, Colors.RED);
 
-		scoreLabel1 = scoreBox1.first;
-		scoreLabel2 = scoreBox2.first;
+		blackScoreLabel = scoreBox1.first;
+		whiteScoreLabel = scoreBox2.first;
 
 		add(parentPanel);
 		parentPanel.add(scrollPane, BorderLayout.CENTER);

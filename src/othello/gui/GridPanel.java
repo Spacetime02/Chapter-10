@@ -3,9 +3,6 @@ package othello.gui;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Dimension;
-import java.awt.EventQueue;
-import java.awt.Font;
-import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Point;
@@ -15,7 +12,6 @@ import java.awt.Stroke;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
-import java.util.Arrays;
 import java.util.function.IntConsumer;
 
 import javax.swing.BorderFactory;
@@ -26,35 +22,21 @@ import javax.swing.JScrollPane;
 import othello.core.Othello;
 import othello.core.Position;
 import othello.core.players.HumanPlayer;
-import othello.core.players.Player;
-import othello.core.players.RecursiveComputerPlayer;
-import othello.util.Search;
-import othello.util.function.FloatUnaryOperator;
+import othello.core.players.RandomComputerPlayer;
 import othello.util.tuple.Pair;
 
 class GridPanel extends JPanel {
 
 	private static final long serialVersionUID = 1L;
 
-	private static final int BASE_MIN_CELL_SIZE     = 5;
-	private static final int MIN_CELL_SIZE_PER_CHAR = 15;
-	private static final int BORDER_THICKNESS       = 2;
+	private static final int MIN_CELL_SIZE    = 10;
+	private static final int BORDER_THICKNESS = 2;
 
-	private static final int BASE_SCROLL_SPEED     = 5;
-	private static final int SCROLL_SPEED_PER_CHAR = 1;
+	private static final int SCROLL_SPEED = 5;
 
 	private Othello game;
 
-	private int maxStrLength;
-
-	/**
-	 * Includes border thickness.
-	 */
-	private int minCellSize;
-
 	private JScrollPane scrollPane;
-
-	private String[][] strGrid;
 
 	private GridListener listener;
 
@@ -62,7 +44,7 @@ class GridPanel extends JPanel {
 
 	private boolean[][] validMoveGrid;
 
-	GridPanel(int gridSize, int minValue, int maxValue, boolean human1, String name1, boolean human2, String name2, boolean horizontal1, int cacheDepth, int searchDepth, JScrollPane scrollPane, IntConsumer scoreCallback1, IntConsumer scoreCallback2) {
+	GridPanel(int gridSize, boolean blackHuman, String blackName, boolean whiteHuman, String whiteName, int cacheDepth, int searchDepth, JScrollPane scrollPane, IntConsumer blackScoreCallback, IntConsumer whiteScoreCallback) {
 		super(null, true);
 
 		this.scrollPane = scrollPane;
@@ -71,7 +53,7 @@ class GridPanel extends JPanel {
 		setBorder(BorderFactory.createMatteBorder(5, 5, 5, 5, Color.CYAN));
 		setCursor(Cursors.HAND);
 
-		setup(gridSize, minValue, maxValue, human1, name1, human2, name2, horizontal1, cacheDepth, searchDepth, scoreCallback1, scoreCallback2);
+		setup(gridSize, blackHuman, blackName, whiteHuman, whiteName, cacheDepth, searchDepth, blackScoreCallback, whiteScoreCallback);
 
 		new Thread(() -> {
 			game.playGame();
@@ -91,35 +73,18 @@ class GridPanel extends JPanel {
 		}).start();
 	}
 
-	void setup(int gridSize, int minSize, int maxValue, boolean human1, String name1, boolean human2, String name2, boolean horizontal1, int cacheDepth, int searchDepth, IntConsumer scoreCallback1, IntConsumer scoreCallback2) {
+	void setup(int gridSize, boolean blackHuman, String blackName, boolean whiteHuman, String whiteName, int cacheDepth, int searchDepth, IntConsumer blackScoreCallback, IntConsumer whiteScoreCallback) {
+//		Player player1 = blackHuman ? new HumanPlayer(blackName) : new RecursiveComputerPlayer(blackName, cacheDepth, searchDepth);
+//		Player player2 = whiteHuman ? new HumanPlayer(whiteName) : new RecursiveComputerPlayer(whiteName, cacheDepth, searchDepth);
 
-		maxStrLength = 1;
-
-		Player player1 = human1 ? new HumanPlayer(name1) : new RecursiveComputerPlayer(name1, cacheDepth, searchDepth);
-		Player player2 = human2 ? new HumanPlayer(name2) : new RecursiveComputerPlayer(name2, cacheDepth, searchDepth);
-		game = new Othello(gridSize, minSize, maxValue, player1, player2, horizontal1, () -> EventQueue.invokeLater(() -> {
+		// TODO use recursive computer players.
+		game = new Othello(gridSize, blackHuman ? new HumanPlayer(blackName) : new RandomComputerPlayer(blackName), whiteHuman ? new HumanPlayer(whiteName) : new RandomComputerPlayer(whiteName), () -> {
 			Point p = getMousePosition();
 			listener.update(p != null && listener.clickable(processPos(p)));
-		}), scoreCallback1, scoreCallback2);
+		}, blackScoreCallback, whiteScoreCallback);
 
-		strGrid = new String[gridSize][gridSize];
-
-		for (int i = 0; i < gridSize; i++) {
-
-			String[] strRow = strGrid[i];
-
-			for (int j = 0; j < gridSize; j++) {
-				strRow[j] = Integer.toString(game.getValue(i, j));
-				if (strRow[j].length() > maxStrLength)
-					maxStrLength = strRow[j].length();
-			}
-		}
-
-		minCellSize = BASE_MIN_CELL_SIZE + MIN_CELL_SIZE_PER_CHAR * maxStrLength + BORDER_THICKNESS;
-
-		int scrollSpeed = BASE_SCROLL_SPEED + SCROLL_SPEED_PER_CHAR * maxStrLength;
-		scrollPane.getVerticalScrollBar().setUnitIncrement(scrollSpeed);
-		scrollPane.getHorizontalScrollBar().setUnitIncrement(scrollSpeed);
+		scrollPane.getVerticalScrollBar().setUnitIncrement(SCROLL_SPEED);
+		scrollPane.getHorizontalScrollBar().setUnitIncrement(SCROLL_SPEED);
 
 		if (isVisible())
 			repaint();
@@ -166,18 +131,6 @@ class GridPanel extends JPanel {
 		int minJ            = minVisX / cellSize;
 		int maxIP1          = (maxVisYNoBorder + cellSizeNoBorder) / cellSize;
 		int maxJP1          = (maxVisXNoBorder + cellSizeNoBorder) / cellSize;
-		int maxTextSize     = cellSizeNoBorder * 3 / 4;
-//		int maxBorderI      = maxVisY / cellSize + 1;
-//		int maxBorderJ      = maxVisX / cellSize + 1;
-//		int imgHeight       = maxBorderI == maxIP1 ? visHeight : maxIP1 * cellSize + borderThickness - minVisY; // Includes border after cell, making extension unnecessary?
-//		int imgWidth        = maxBorderJ == maxJP1 ? visWidth : maxJP1 * cellSize + borderThickness - minVisX;
-//		int minBorderI      = (minVisY - cellSizeNoBorder) / cellSize;
-//		int minBorderJ      = (minVisX - cellSizeNoBorder) / cellSize;
-//		int minY            = minI * cellSize;
-//		int minX            = minJ * cellSize;
-
-//		g2D.translate(-minVisX, -minVisY);
-//		g2D.transform(gui.inverseTransform);
 
 		g2D.setBackground(g2D.getBackground());
 
@@ -192,101 +145,43 @@ class GridPanel extends JPanel {
 		// Reset Background
 		g2D.clearRect(minVisX, minVisY, visWidth, visHeight);
 
-		// Solve for Font Size
-		// Only Works for Monospace Font
-		char[] test = new char[maxStrLength];
-		Arrays.fill(test, '#');
-
-		FloatUnaryOperator fontSizeOp = size -> {
-			Font font = Fonts.get(Font.MONOSPACED, Font.BOLD, size/* (float) (size * scale) */);
-
-			FontMetrics metrics = g2D.getFontMetrics(font);
-
-			int fontW = metrics.charsWidth(test, 0, maxStrLength);
-			int fontH = metrics.getAscent() - metrics.getDescent();
-
-			return Math.max(fontW, fontH) - maxTextSize;
-		};
-
-		float fontSize = Math.nextDown(Search.binarySearch(fontSizeOp, 0f, cellSize * 2f));
-
-		Font font = Fonts.get(Font.MONOSPACED, Font.BOLD, fontSize);
-
-		FontMetrics metrics = g2D.getFontMetrics(font);
-
-		int textHeight = metrics.getAscent() - metrics.getDescent();
-
-		g2D.setFont(font);
-
 		for (int i = minI; i < maxIP1; i++) {
-//			int y = borderThickness + cellSize * i;
 			int y = BORDER_THICKNESS + cellSize * i;
-
-			int textY = (cellSizeNoBorder + textHeight) / 2;
-
-			String[] strRow = strGrid[i];
 
 			for (int j = minJ; j < maxJP1; j++) {
 				Position pos = new Position(i, j);
 
-//				int x = borderThickness + cellSize * j;
 				int x = BORDER_THICKNESS + cellSize * j;
 
-				boolean taken  = game.isTaken(pos);
-				boolean taken1 = game.isTakenByPlayer1(pos);
-				boolean hover  = pos.equals(hoverPos);
-				boolean valid  = validMoveGrid[i][j];
+				boolean taken      = game.isTaken(pos);
+				boolean blackTaken = game.isBlack(pos);
+				boolean hover      = pos.equals(hoverPos);
+				boolean valid      = validMoveGrid[i][j];
 
 				Color bg;
-				Color fg;
 
-				if (taken) {
-					if (taken1) {
-						bg = Colors.ON_BACKGROUND;
-						fg = Colors.blend(Colors.BACKGROUND_0, Colors.BLUE, 0.7f);
-					} else {
-						bg = Colors.ON_BACKGROUND;
-						fg = Colors.blend(Colors.BACKGROUND_0, Colors.RED, 0.7f);
-					}
-				} else if (valid)
-					if (hover) {
+				if (taken)
+					if (blackTaken)
+						bg = Color.BLACK;
+					else
+						bg = Color.WHITE;
+				else if (valid)
+					if (hover)
 						bg = Colors.ORANGE;
-						fg = Colors.BACKGROUND_1;
-					} else if (isPlayer1) {
+					else if (isPlayer1)
 						bg = Colors.BLUE;
-						fg = Colors.BACKGROUND_1;
-					} else {
+					else
 						bg = Colors.RED;
-						fg = Colors.BACKGROUND_1;
-					}
-				else {
+				else
 					bg = Colors.BACKGROUND_1;
-					fg = Colors.ON_BACKGROUND;
-				}
 
 				// Draw Cells
 				g2D.setColor(bg);
 
 				g2D.fillRect(x, y, cellSizeNoBorder, cellSizeNoBorder);
 
-				// Draw Text
-				g2D.setColor(fg);
-
-				String str = strRow[j];
-
-				int textWidth = metrics.stringWidth(str);
-
-				int textX = (cellSizeNoBorder - textWidth) / 2;
-
-				g2D.drawString(Integer.toString(game.getValue(i, j)), x + textX, y + textY);
-
-//				g2D.translate(cellSize, 0);
 			}
-//			g2D.translate(cellSize * (minJ - maxJP1), cellSize);
 		}
-
-//		g2D.translate(minVisX, minVisY);
-//		super.paint(g);
 	}
 
 	private Pair<Position, Point> processPos(Point pos) {
@@ -312,7 +207,7 @@ class GridPanel extends JPanel {
 	private int computeUnroundedSize() {
 		int size = computeNaiveSize();
 
-		int minSize = minCellSize * game.getGridSize() + BORDER_THICKNESS;
+		int minSize = MIN_CELL_SIZE * game.getGridSize() + BORDER_THICKNESS;
 
 		if (size < minSize)
 			size = minSize;

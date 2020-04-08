@@ -11,8 +11,6 @@ import othello.core.players.Player;
 
 public class Othello {
 
-	private static final Random GRID_RANDY = new Random();
-
 	private final BlockingQueue<Position> userInputQueue = new LinkedBlockingDeque<Position>();
 
 	private int gridSize;
@@ -33,13 +31,7 @@ public class Othello {
 	private IntConsumer scoreCallback1;
 	private IntConsumer scoreCallback2;
 
-	public Othello(int gridSize, int minValue, int maxValue, Player blackPlayer, Player whitePlayer, Runnable updateCallback, IntConsumer scoreCallback1, IntConsumer scoreCallback2) {
-		this(gridSize, (i, j) -> GRID_RANDY.nextInt(maxValue - minValue + 1) + minValue, blackPlayer, whitePlayer, updateCallback, scoreCallback1, scoreCallback2);
-		if (minValue > maxValue)
-			throw new IllegalArgumentException("minValue (" + minValue + ") > maxValue (" + maxValue + ").");
-	}
-
-	public Othello(int gridSize, IntBinaryOperator gridGenerator, Player blackPlayer, Player whitePlayer, Runnable updateCallback, IntConsumer scoreCallback1, IntConsumer scoreCallback2) {
+	public Othello(int gridSize, Player blackPlayer, Player whitePlayer, Runnable updateCallback, IntConsumer scoreCallback1, IntConsumer scoreCallback2) {
 		if (gridSize % 2 != 0)
 			throw new IllegalArgumentException("Grid size (" + gridSize + ") is odd.");
 
@@ -66,12 +58,12 @@ public class Othello {
 		this.scoreCallback2 = scoreCallback2;
 	}
 
-	public static boolean[][] getValidMoveGrid(boolean[][] takenGrid, Position currentPos, boolean horizontal) {
+	public static boolean[][] getValidMoveGrid(boolean[][] curGrid, boolean[][] takenGrid) {
 		int gridSize = takenGrid.length;
 
 		boolean[][] validMoveGrid = new boolean[gridSize][gridSize];
 
-		Position[] validMoves = getValidMoves(takenGrid, currentPos, horizontal);
+		Position[] validMoves = getValidMoves(curGrid, takenGrid);
 
 		for (Position validMove : validMoves)
 			validMoveGrid[validMove.i][validMove.j] = true;
@@ -79,31 +71,12 @@ public class Othello {
 		return validMoveGrid;
 	}
 
-	public static Position[] getValidMoves(boolean[][] takenGrid, Position currentPos, boolean horizontal) {
-		int gridSize = takenGrid.length;
-
-		if (currentPos == null) {
-			Position[] pos = new Position[gridSize * gridSize];
-			for (int i = 0; i < gridSize; i++)
-				for (int j = 0; j < gridSize; j++)
-					pos[i * gridSize + j] = new Position(i, j);
-			return pos;
-		}
-
-		int idx = 0;
-
-		Position[] pos = new Position[gridSize];
-
-		if (horizontal) {
-			boolean[] row = takenGrid[currentPos.i];
-			for (int j = 0; j < gridSize; j++)
-				if (!row[j])
-					pos[idx++] = new Position(currentPos.i, j);
-		} else
-			for (int i = 0; i < gridSize; i++)
-				if (!takenGrid[i][currentPos.j])
-					pos[idx++] = new Position(i, currentPos.j);
-		return Arrays.copyOf(pos, idx);
+	public static Position[] getValidMoves(boolean[][] curGrid, boolean[][] takenGrid) {
+		int gridSize = curGrid.length;
+	}
+	
+	private static Position[] getAdjacent(boolean[][] takenGrid) {
+		for ()
 	}
 
 	public static boolean isValid(Position currentPos, boolean[][] takenGrid, boolean horizontal, Position movePos) {
@@ -213,7 +186,7 @@ public class Othello {
 	}
 
 	public Position[] getValidMoves() {
-		return getValidMoves(takenGrid, currentPos, isHorizontal());
+		return getValidMoves(, takenGrid);
 	}
 
 	public boolean isValid(Position movePos) {
@@ -279,6 +252,18 @@ public class Othello {
 
 	public boolean isWhite(Position pos) {
 		return isWhite(pos.i, pos.j);
+	}
+	
+	public boolean isCurrent(int i, int j) {
+		return isBlackPlayer() ? isBlack(i, j) : isWhite(i, j);
+	}
+	
+	public boolean isCurrent(Position pos) {
+		return isCurrent(pos.i, pos.j);
+	}
+	
+	public boolean isCurrent(Position pos) {
+		
 	}
 
 	public boolean isTaken(int i, int j) {
