@@ -17,62 +17,49 @@ public class Othello {
 
 	private int gridSize;
 
-	private Player player1;
-	private Player player2;
-
-	private Player horizontalPlayer;
-	private Player verticalPlayer;
+	private Player blackPlayer;
+	private Player whitePlayer;
 
 	private Player currentPlayer;
 	private Player currentOpponent;
 
-	private int score1;
-	private int score2;
+	private int blackScore;
+	private int whiteScore;
 
-	private int[][] valueGrid;
-
+	private boolean[][] blackGrid;
 	private boolean[][] takenGrid;
-
-	private boolean[][] takenBy1grid;
-
-	private Position currentPos = null;
 
 	private Runnable    updateCallback;
 	private IntConsumer scoreCallback1;
 	private IntConsumer scoreCallback2;
 
-	public Othello(int gridSize, int minValue, int maxValue, Player player1, Player player2, boolean horizontal1, Runnable updateCallback, IntConsumer scoreCallback1, IntConsumer scoreCallback2) {
-		this(gridSize, (i, j) -> GRID_RANDY.nextInt(maxValue - minValue + 1) + minValue, player1, player2, horizontal1, updateCallback, scoreCallback1, scoreCallback2);
+	public Othello(int gridSize, int minValue, int maxValue, Player blackPlayer, Player whitePlayer, Runnable updateCallback, IntConsumer scoreCallback1, IntConsumer scoreCallback2) {
+		this(gridSize, (i, j) -> GRID_RANDY.nextInt(maxValue - minValue + 1) + minValue, blackPlayer, whitePlayer, updateCallback, scoreCallback1, scoreCallback2);
 		if (minValue > maxValue)
 			throw new IllegalArgumentException("minValue (" + minValue + ") > maxValue (" + maxValue + ").");
 	}
 
-	public Othello(int gridSize, IntBinaryOperator gridGenerator, Player player1, Player player2, boolean horizontal1, Runnable updateCallback, IntConsumer scoreCallback1, IntConsumer scoreCallback2) {
+	public Othello(int gridSize, IntBinaryOperator gridGenerator, Player blackPlayer, Player whitePlayer, Runnable updateCallback, IntConsumer scoreCallback1, IntConsumer scoreCallback2) {
+		if (gridSize % 2 != 0)
+			throw new IllegalArgumentException("Grid size (" + gridSize + ") is odd.");
+
 		this.gridSize = gridSize;
+		int half = gridSize / 2;
 
-		valueGrid = new int[gridSize][gridSize];
-
+		blackGrid = new boolean[gridSize][gridSize];
 		takenGrid = new boolean[gridSize][gridSize];
 
-		takenBy1grid = new boolean[gridSize][gridSize];
+		blackGrid[half - 1][half - 1] = blackGrid[half][half] = true;
+		takenGrid[half - 1][half - 1] = takenGrid[half - 1][half] = takenGrid[half][half - 1] = takenGrid[half][half] = true;
 
-		for (int i = 0; i < gridSize; i++) {
-			int[] row = valueGrid[i];
-			for (int j = 0; j < gridSize; j++)
-				row[j] = gridGenerator.applyAsInt(i, j);
-		}
+		this.blackPlayer = blackPlayer;
+		this.whitePlayer = whitePlayer;
 
-		this.player1 = player1;
-		this.player2 = player2;
+		currentPlayer = blackPlayer;
+		currentOpponent = whitePlayer;
 
-		this.horizontalPlayer = horizontal1 ? player1 : player2;
-		this.verticalPlayer = horizontal1 ? player2 : player1;
-
-		currentPlayer = player1;
-		currentOpponent = player2;
-
-		score1 = 0;
-		score2 = 0;
+		blackScore = 0;
+		whiteScore = 0;
 
 		this.updateCallback = updateCallback;
 		this.scoreCallback1 = scoreCallback1;
@@ -167,20 +154,22 @@ public class Othello {
 
 	public void playGame() {
 		while (hasRemainingMoves()) {
-			int[][] valueGrid = new int[gridSize][];
-
+			boolean[][] curGrid   = new boolean[gridSize][];
 			boolean[][] takenGrid = new boolean[gridSize][];
 
 			for (int i = 0; i < gridSize; i++) {
-				valueGrid[i] = Arrays.copyOf(this.valueGrid[i], gridSize);
+				if (isBlackPlayer())
+					curGrid[i] = Arrays.copyOf(blackGrid[i], gridSize);
+				else {
+					boolean[] curRow = new boolean[gridSize];
+					for (int j = 0; j < gridSize; j++)
+						curRow[j] = !blackGrid[i][j];
+					curGrid[i] = curRow;
+				}
 				takenGrid[i] = Arrays.copyOf(this.takenGrid[i], gridSize);
 			}
 
-			Position movePos = currentPlayer.move(valueGrid, takenGrid, currentPos, isHorizontal(), getCurrentScore(), getOpponentScore(), currentPlayer.getName(), this::getUserInput);
-
-			doMove(movePos);
-
-			currentPos = movePos;
+			doMove(currentPlayer.move(curGrid, takenGrid, getCurrentScore(), getOpponentScore(), currentPlayer.getName(), this::getUserInput));
 
 			userInputQueue.clear();
 
@@ -189,11 +178,11 @@ public class Othello {
 	}
 
 	public void reset() {
-		currentPlayer = player1;
-		currentOpponent = player2;
+		currentPlayer = blackPlayer;
+		currentOpponent = whitePlayer;
 
-		scoreCallback1.accept(score1 = 0);
-		scoreCallback1.accept(score2 = 0);
+		scoreCallback1.accept(blackScore = 0);
+		scoreCallback1.accept(whiteScore = 0);
 	}
 
 	public void doMove(Position movePos) {
@@ -201,7 +190,7 @@ public class Othello {
 			throw new InvalidMoveException(movePos);
 		takenGrid[movePos.i][movePos.j] = true;
 		addCurrentScore(valueGrid[movePos.i][movePos.j]);
-		takenBy1grid[movePos.i][movePos.j] = isPlayer1();
+		takenBy1grid[movePos.i][movePos.j] = isBlackPlayer();
 		swapPlayers();
 	}
 
@@ -211,20 +200,12 @@ public class Othello {
 		currentOpponent = temp;
 	}
 
-	public boolean isPlayer1() {
-		return currentPlayer == player1;
+	public boolean isBlackPlayer() {
+		return currentPlayer == blackPlayer;
 	}
 
-	public boolean isPlayer2() {
-		return currentPlayer == player2;
-	}
-
-	public boolean isHorizontal() {
-		return currentPlayer == horizontalPlayer;
-	}
-
-	public boolean isVertical() {
-		return currentPlayer == verticalPlayer;
+	public boolean isWhitePlayer() {
+		return currentPlayer == whitePlayer;
 	}
 
 	public boolean[][] getValidMoveGrid() {
@@ -264,20 +245,12 @@ public class Othello {
 			}
 	}
 
-	public Player getPlayer1() {
-		return player1;
+	public Player getWhitePlayer() {
+		return blackPlayer;
 	}
 
-	public Player getPlayer2() {
-		return player2;
-	}
-
-	public Player getHorizontalPlayer() {
-		return horizontalPlayer;
-	}
-
-	public Player getVerticalPlayer() {
-		return verticalPlayer;
+	public Player getBlackPlayer() {
+		return whitePlayer;
 	}
 
 	public Player getCurrentPlayer() {
@@ -292,16 +265,20 @@ public class Othello {
 		return gridSize;
 	}
 
-	public Position getCurrentPos() {
-		return currentPos;
+	public boolean isBlack(int i, int j) {
+		return blackGrid[i][j] && takenGrid[i][j];
 	}
 
-	public int getValue(int i, int j) {
-		return valueGrid[i][j];
+	public boolean isBlack(Position pos) {
+		return isBlack(pos.i, pos.j);
 	}
 
-	public int getValue(Position pos) {
-		return getValue(pos.i, pos.j);
+	public boolean isWhite(int i, int j) {
+		return !blackGrid[i][j] && takenGrid[i][j];
+	}
+
+	public boolean isWhite(Position pos) {
+		return isWhite(pos.i, pos.j);
 	}
 
 	public boolean isTaken(int i, int j) {
@@ -312,51 +289,35 @@ public class Othello {
 		return isTaken(pos.i, pos.j);
 	}
 
-	public boolean isTakenByPlayer1(int i, int j) {
-		return takenBy1grid[i][j] && takenGrid[i][j];
+	public boolean isEmpty(int i, int j) {
+		return !takenGrid[i][j];
 	}
 
-	public boolean isTakenByPlayer1(Position pos) {
-		return isTakenByPlayer1(pos.i, pos.j);
+	public boolean isEmpty(Position pos) {
+		return isEmpty(pos.i, pos.j);
 	}
 
-	public boolean isTakenByPlayer2(int i, int j) {
-		return !takenBy1grid[i][j] && takenGrid[i][j];
+	public int getBlackScore() {
+		return blackScore;
 	}
 
-	public boolean isTakenByPlayer2(Position pos) {
-		return isTakenByPlayer2(pos.i, pos.j);
-	}
-
-	public int getScore1() {
-		return score1;
-	}
-
-	public int getScore2() {
-		return score2;
-	}
-
-	public int getHorizontalScore() {
-		return horizontalPlayer == player1 ? score1 : score2;
-	}
-
-	public int getVerticalScore() {
-		return horizontalPlayer == player1 ? score2 : score1;
+	public int getWhiteScore() {
+		return whiteScore;
 	}
 
 	public int getCurrentScore() {
-		return isPlayer1() ? score1 : score2;
+		return isBlackPlayer() ? blackScore : whiteScore;
 	}
 
 	public int getOpponentScore() {
-		return isPlayer1() ? score2 : score1;
+		return isBlackPlayer() ? whiteScore : blackScore;
 	}
 
 	private void addCurrentScore(int points) {
-		if (isPlayer1())
-			scoreCallback1.accept(score1 += points);
+		if (isBlackPlayer())
+			scoreCallback1.accept(blackScore += points);
 		else
-			scoreCallback2.accept(score2 += points);
+			scoreCallback2.accept(whiteScore += points);
 	}
 
 }

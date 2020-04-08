@@ -76,12 +76,12 @@ class GridPanel extends JPanel {
 		new Thread(() -> {
 			game.playGame();
 
-			int score1 = game.getScore1();
-			int score2 = game.getScore2();
+			int score1 = game.getBlackScore();
+			int score2 = game.getWhiteScore();
 			int comp   = Integer.compare(score1, score2);
 
-			String n1 = game.getPlayer1().getName();
-			String n2 = game.getPlayer2().getName();
+			String n1 = game.getWhitePlayer().getName();
+			String n2 = game.getBlackPlayer().getName();
 			if (comp > 0)
 				JOptionPane.showMessageDialog(this, n1 + " beat " + n2 + " " + score1 + " to " + score2 + "!", "Game Over!", JOptionPane.INFORMATION_MESSAGE);
 			else if (comp < 0)
@@ -144,7 +144,7 @@ class GridPanel extends JPanel {
 	public void paint(Graphics g) {
 		int gridSize = game.getGridSize();
 
-		boolean isPlayer1 = game.isPlayer1();
+		boolean isPlayer1 = game.isBlackPlayer();
 
 		Graphics2D g2D = (Graphics2D) g;
 

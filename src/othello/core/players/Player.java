@@ -16,6 +16,6 @@ public abstract class Player {
 		return name;
 	}
 
-	public abstract Position move(int[][] valueGrid, boolean[][] takenGrid, Position currentPos, boolean horizontal, int score, int oppScore, String playerName, Supplier<Position> userInput);
+	public abstract Position move(boolean[][] curGrid, boolean[][] takenGrid, int score, int oppScore, String playerName, Supplier<Position> userInput);
 
 }

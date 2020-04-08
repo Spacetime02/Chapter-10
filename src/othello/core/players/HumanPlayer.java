@@ -12,7 +12,7 @@ public class HumanPlayer extends Player {
 	}
 
 	@Override
-	public Position move(int[][] valueGrid, boolean[][] takenGrid, Position currentPos, boolean horizontal, int score, int oppScore, String playerName, Supplier<Position> userInput) {
+	public Position move(boolean[][] curGrid, boolean[][] takenGrid, int score, int oppScore, String playerName, Supplier<Position> userInput) {
 		Position pos;
 		do
 			pos = userInput.get();
