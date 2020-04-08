@@ -6,7 +6,7 @@ import maxit.core.Position;
 
 public abstract class ComputerPlayer extends Player {
 
-	private static final long MIN_DURATION = 1250L;
+	private static final long MIN_DURATION = 1000L;
 
 	public ComputerPlayer(String name) {
 		super(name);
