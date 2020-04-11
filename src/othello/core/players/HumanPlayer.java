@@ -16,7 +16,7 @@ public class HumanPlayer extends Player {
 		Position pos;
 		do
 			pos = userInput.get();
-		while (!Othello.isValid(currentPos, takenGrid, horizontal, pos));
+		while (!Othello.isValid(curGrid, takenGrid, pos));
 		return pos;
 	}
 
