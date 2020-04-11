@@ -1,13 +1,14 @@
 package othello.core;
 
+import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Random;
+import java.util.List;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingDeque;
-import java.util.function.IntBinaryOperator;
 import java.util.function.IntConsumer;
 
 import othello.core.players.Player;
+import othello.util.tuple.IntPair;
 
 public class Othello {
 
@@ -28,8 +29,8 @@ public class Othello {
 	private boolean[][] takenGrid;
 
 	private Runnable    updateCallback;
-	private IntConsumer scoreCallback1;
-	private IntConsumer scoreCallback2;
+	private IntConsumer blackScoreCallback;
+	private IntConsumer whiteScoreCallback;
 
 	public Othello(int gridSize, Player blackPlayer, Player whitePlayer, Runnable updateCallback, IntConsumer scoreCallback1, IntConsumer scoreCallback2) {
 		if (gridSize % 2 != 0)
@@ -54,16 +55,19 @@ public class Othello {
 		whiteScore = 0;
 
 		this.updateCallback = updateCallback;
-		this.scoreCallback1 = scoreCallback1;
-		this.scoreCallback2 = scoreCallback2;
+		this.blackScoreCallback = scoreCallback1;
+		this.whiteScoreCallback = scoreCallback2;
 	}
 
 	public static boolean[][] getValidMoveGrid(boolean[][] curGrid, boolean[][] takenGrid) {
+		Position[] validMoves = getValidMoves(curGrid, takenGrid);
+
 		int gridSize = takenGrid.length;
 
 		boolean[][] validMoveGrid = new boolean[gridSize][gridSize];
 
-		Position[] validMoves = getValidMoves(curGrid, takenGrid);
+		if (validMoves[0] == null)
+			return validMoveGrid;
 
 		for (Position validMove : validMoves)
 			validMoveGrid[validMove.i][validMove.j] = true;
@@ -73,65 +77,162 @@ public class Othello {
 
 	public static Position[] getValidMoves(boolean[][] curGrid, boolean[][] takenGrid) {
 		int gridSize = curGrid.length;
-	}
-	
-	private static Position[] getAdjacent(boolean[][] takenGrid) {
-		for ()
+
+		// Filters possibilities, improving performance
+		Position[] adjacent = getAdjacent(takenGrid);
+
+		int numAdjacent = adjacent.length;
+
+		Direction[] dirs = Direction.getNonCenter();
+
+		List<Position> valid = new ArrayList<>();
+
+		for (int p = 0; p < numAdjacent; p++) {
+			Position pos = adjacent[p];
+
+			Position stepPos;
+			for (int d = 0; d < 8; d++) {
+				Direction dir = dirs[d];
+
+				int i;
+				int j;
+
+				for (int s = 1; s < gridSize; s++) {
+					stepPos = dir.step(pos, s);
+					i = stepPos.i;
+					j = stepPos.j;
+
+					if (i < 0 || i >= gridSize || j < 0 || j >= gridSize || !takenGrid[i][j] || s == 1 && curGrid[i][j])
+						break;
+					else if (curGrid[i][j]) {
+						valid.add(pos);
+						break;
+					}
+				}
+			}
+		}
+
+		// If valid is empty, returns { null }.
+		return valid.toArray(new Position[1]);
 	}
 
-	public static boolean isValid(Position currentPos, boolean[][] takenGrid, boolean horizontal, Position movePos) {
-		int gridSize = takenGrid.length;
-		if (movePos.i < 0 || movePos.i >= gridSize || movePos.j < 0 || movePos.j >= gridSize || takenGrid[movePos.i][movePos.j])
+	public static boolean isValid(boolean[][] curGrid, boolean[][] takenGrid, Position movePos) {
+		if (movePos == null)
+			return getValidMoves(curGrid, takenGrid)[0] == null;
+		else if (takenGrid[movePos.i][movePos.j])
 			return false;
-		else if (currentPos == null)
-			return true;
-		else if (horizontal)
-			return currentPos.i == movePos.i;
-		else
-			return currentPos.j == movePos.j;
-	}
 
-	public static boolean hasRemainingMoves(Position currentPos, boolean[][] takenGrid, boolean horizontal) {
-		if (currentPos == null)
-			return true;
-		else if (horizontal) {
-			for (boolean taken : takenGrid[currentPos.i])
-				if (!taken)
+		int gridSize = curGrid.length;
+
+		Direction[] dirs = Direction.getNonCenter();
+
+		Position stepPos;
+		for (int d = 0; d < 8; d++) {
+			Direction dir = dirs[d];
+
+			int i;
+			int j;
+
+			for (int s = 1;; s++) {
+				stepPos = dir.step(movePos, s);
+				i = stepPos.i;
+				j = stepPos.j;
+
+				if (i < 0 || i >= gridSize || j < 0 || j >= gridSize || !takenGrid[i][j] || s == 1 && curGrid[i][j])
+					break;
+				else if (curGrid[i][j])
 					return true;
-		} else
-			for (boolean[] takenRow : takenGrid)
-				if (!takenRow[currentPos.j])
-					return true;
+			}
+		}
 		return false;
 	}
 
-	/**
-	 * Assumes that the move is valid; use isValid to check!
-	 * 
-	 * @return the new score
-	 */
-	public static int simulateMove(int[][] valueGrid, boolean[][] takenGrid, Position movePos, int curScore) {
-		takenGrid[movePos.i][movePos.j] = true;
-		return curScore + valueGrid[movePos.i][movePos.j];
+	private static Position[] getAdjacent(boolean[][] takenGrid) {
+		int gridSize = takenGrid.length;
+
+		List<Position> adjacent = new ArrayList<>();
+
+		Direction[] dirs = Direction.getNonCenter();
+
+		for (int i = 0; i < gridSize; i++)
+			for (int j = 0; j < gridSize; j++) {
+				if (takenGrid[i][j])
+					continue;
+				Position cur = new Position(i, j);
+				for (int d = 0; d < 8; d++) {
+					Position adj = dirs[d].step(cur);
+					if (adj.i >= 0 && adj.i < gridSize && adj.j >= 0 && adj.j < gridSize && takenGrid[adj.i][adj.j]) {
+						adjacent.add(cur);
+						break;
+					}
+				}
+			}
+		return adjacent.toArray(new Position[adjacent.size()]);
 	}
 
 	/**
 	 * Assumes that the move is valid; use isValid to check!
 	 * 
-	 * @return the new score
+	 * @return a pair of the new curren score and the new opponent score.
 	 */
-	public static int undoSimulateMove(int[][] valueGrid, boolean[][] takenGrid, Position movePos, int curScore) {
-		takenGrid[movePos.i][movePos.j] = false;
-		return curScore - valueGrid[movePos.i][movePos.j];
+	public static IntPair simulateMove(boolean[][] curGrid, boolean[][] takenGrid, Position movePos, int curScore, int oppScore) {
+		if (movePos != null) {
+			int gridSize = curGrid.length;
+
+			int moveI = movePos.i;
+			int moveJ = movePos.j;
+
+			takenGrid[moveI][moveJ] = true;
+			curGrid[moveI][moveJ] = true;
+
+			int points = 0;
+
+			Direction[] dirs = Direction.getNonCenter();
+
+			Position stepPos;
+
+			List<Position> toChange = new ArrayList<>();
+			for (int d = 0; d < 8; d++) {
+				Direction dir = dirs[d];
+
+				int i;
+				int j;
+
+				toChange.clear();
+				for (int s = 1;; s++) {
+					stepPos = dir.step(movePos, s);
+					i = stepPos.i;
+					j = stepPos.j;
+
+					if (i < 0 || i >= gridSize || j < 0 || j >= gridSize || !takenGrid[i][j] || s == 1 && curGrid[i][j])
+						break;
+					else if (curGrid[i][j]) {
+						points += --s;
+						while (s > 0) {
+							stepPos = toChange.get(--s);
+							curGrid[stepPos.i][stepPos.j] = true;
+						}
+						break;
+					} else
+						toChange.add(stepPos);
+				}
+			}
+			return new IntPair(curScore + points + 1, oppScore - points);
+		} else
+			return new IntPair(0, 0);
 	}
 
 	public void playGame() {
-		while (hasRemainingMoves()) {
+		boolean prevForfeit = false;
+		boolean keepPlaying = true;
+		while (keepPlaying) {
 			boolean[][] curGrid   = new boolean[gridSize][];
 			boolean[][] takenGrid = new boolean[gridSize][];
 
+			boolean isBlackPlayer = isBlackPlayer();
+
 			for (int i = 0; i < gridSize; i++) {
-				if (isBlackPlayer())
+				if (isBlackPlayer)
 					curGrid[i] = Arrays.copyOf(blackGrid[i], gridSize);
 				else {
 					boolean[] curRow = new boolean[gridSize];
@@ -142,7 +243,15 @@ public class Othello {
 				takenGrid[i] = Arrays.copyOf(this.takenGrid[i], gridSize);
 			}
 
-			doMove(currentPlayer.move(curGrid, takenGrid, getCurrentScore(), getOpponentScore(), currentPlayer.getName(), this::getUserInput));
+			Position movePos = currentPlayer.move(curGrid, takenGrid, getCurrentScore(), getOpponentScore(), currentPlayer.getName(), this::getUserInput);
+			doMove(movePos);
+			if (movePos == null)
+				if (prevForfeit)
+					keepPlaying = false;
+				else
+					prevForfeit = true;
+			else
+				prevForfeit = false;
 
 			userInputQueue.clear();
 
@@ -154,16 +263,59 @@ public class Othello {
 		currentPlayer = blackPlayer;
 		currentOpponent = whitePlayer;
 
-		scoreCallback1.accept(blackScore = 0);
-		scoreCallback1.accept(whiteScore = 0);
+		blackScoreCallback.accept(blackScore = 0);
+		blackScoreCallback.accept(whiteScore = 0);
 	}
 
 	public void doMove(Position movePos) {
 		if (!isValid(movePos))
 			throw new InvalidMoveException(movePos);
-		takenGrid[movePos.i][movePos.j] = true;
-		addCurrentScore(valueGrid[movePos.i][movePos.j]);
-		takenBy1grid[movePos.i][movePos.j] = isBlackPlayer();
+
+		if (movePos != null) {
+			int moveI = movePos.i;
+			int moveJ = movePos.j;
+
+			boolean isBlackPlayer = isBlackPlayer();
+
+			takenGrid[moveI][moveJ] = true;
+			blackGrid[moveI][moveJ] = isBlackPlayer;
+
+			int points = 0;
+
+			Direction[] dirs = Direction.getNonCenter();
+
+			Position stepPos;
+
+			List<Position> toChange = new ArrayList<>();
+			for (int d = 0; d < 8; d++) {
+				Direction dir = dirs[d];
+
+				int i;
+				int j;
+
+				toChange.clear();
+				for (int s = 1;; s++) {
+					stepPos = dir.step(movePos, s);
+					i = stepPos.i;
+					j = stepPos.j;
+
+					if (i < 0 || i >= gridSize || j < 0 || j >= gridSize || !takenGrid[i][j] || s == 1 && blackGrid[i][j] == isBlackPlayer)
+						break;
+					else if (blackGrid[i][j] == isBlackPlayer) {
+						points += --s;
+						while (s > 0) {
+							stepPos = toChange.get(--s);
+							blackGrid[stepPos.i][stepPos.j] = isBlackPlayer;
+						}
+						break;
+					} else
+						toChange.add(stepPos);
+				}
+			}
+
+			addCurrentScore(points + 1);
+			addOpponentScore(-points);
+		}
 		swapPlayers();
 	}
 
@@ -182,19 +334,15 @@ public class Othello {
 	}
 
 	public boolean[][] getValidMoveGrid() {
-		return getValidMoveGrid(takenGrid, currentPos, isHorizontal());
+		return getValidMoveGrid(getCurrentGrid(), takenGrid);
 	}
 
 	public Position[] getValidMoves() {
-		return getValidMoves(, takenGrid);
+		return getValidMoves(getCurrentGrid(), takenGrid);
 	}
 
 	public boolean isValid(Position movePos) {
-		return isValid(currentPos, takenGrid, isHorizontal(), movePos);
-	}
-
-	public boolean hasRemainingMoves() {
-		return hasRemainingMoves(currentPos, takenGrid, isHorizontal());
+		return isValid(getCurrentGrid(), takenGrid, movePos);
 	}
 
 	public void queueUserInput(Position userInput) {
@@ -253,17 +401,13 @@ public class Othello {
 	public boolean isWhite(Position pos) {
 		return isWhite(pos.i, pos.j);
 	}
-	
+
 	public boolean isCurrent(int i, int j) {
 		return isBlackPlayer() ? isBlack(i, j) : isWhite(i, j);
 	}
-	
+
 	public boolean isCurrent(Position pos) {
 		return isCurrent(pos.i, pos.j);
-	}
-	
-	public boolean isCurrent(Position pos) {
-		
 	}
 
 	public boolean isTaken(int i, int j) {
@@ -300,9 +444,35 @@ public class Othello {
 
 	private void addCurrentScore(int points) {
 		if (isBlackPlayer())
-			scoreCallback1.accept(blackScore += points);
+			blackScoreCallback.accept(blackScore += points);
 		else
-			scoreCallback2.accept(whiteScore += points);
+			whiteScoreCallback.accept(whiteScore += points);
+	}
+
+	private void addOpponentScore(int points) {
+		if (isBlackPlayer())
+			whiteScoreCallback.accept(whiteScore += points);
+		else
+			blackScoreCallback.accept(blackScore += points);
+	}
+
+	/**
+	 * Do not directly expose the results to external code!
+	 */
+	private boolean[][] getCurrentGrid() {
+		if (isBlackPlayer())
+			return blackGrid;
+		else {
+			boolean[][] whiteGrid = new boolean[gridSize][];
+			for (int i = 0; i < gridSize; i++) {
+				boolean[] blackRow = blackGrid[i];
+				boolean[] whiteRow = new boolean[gridSize];
+				for (int j = 0; j < gridSize; j++)
+					whiteRow[j] = !blackRow[j];
+				whiteGrid[i] = whiteRow;
+			}
+			return whiteGrid;
+		}
 	}
 
 }
