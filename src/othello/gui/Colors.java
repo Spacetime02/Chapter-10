@@ -11,6 +11,7 @@ public final class Colors {
 	// Basic
 	public static final Color BACKGROUND    = makeGray(0x12);
 	public static final Color ON_BACKGROUND = makeGray(0xff);
+	public static final Color NEUTRAL       = makeGray(0x80);
 
 	// Primary
 	public static Color RED         = new Color(0xef9a9a); // Red

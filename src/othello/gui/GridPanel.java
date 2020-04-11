@@ -14,7 +14,6 @@ import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.util.function.IntConsumer;
 
-import javax.swing.BorderFactory;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
@@ -30,7 +29,7 @@ class GridPanel extends JPanel {
 	private static final long serialVersionUID = 1L;
 
 	private static final int MIN_CELL_SIZE    = 10;
-	private static final int BORDER_THICKNESS = 2;
+	static final int         BORDER_THICKNESS = 2;
 
 	private static final int SCROLL_SPEED = 5;
 
@@ -50,8 +49,6 @@ class GridPanel extends JPanel {
 		this.scrollPane = scrollPane;
 
 		setBackground(Colors.BACKGROUND_0);
-		setBorder(BorderFactory.createMatteBorder(5, 5, 5, 5, Color.CYAN));
-		setCursor(Cursors.HAND);
 
 		setup(gridSize, blackHuman, blackName, whiteHuman, whiteName, cacheDepth, searchDepth, blackScoreCallback, whiteScoreCallback);
 
@@ -109,9 +106,11 @@ class GridPanel extends JPanel {
 	public void paint(Graphics g) {
 		int gridSize = game.getGridSize();
 
-		boolean isPlayer1 = game.isBlackPlayer();
+		boolean isBlackPlayer = game.isBlackPlayer();
 
 		Graphics2D g2D = (Graphics2D) g;
+
+		g2D.setBackground(Color.GREEN);
 
 		Rectangle visible = getVisibleRect();
 
@@ -131,8 +130,6 @@ class GridPanel extends JPanel {
 		int minJ            = minVisX / cellSize;
 		int maxIP1          = (maxVisYNoBorder + cellSizeNoBorder) / cellSize;
 		int maxJP1          = (maxVisXNoBorder + cellSizeNoBorder) / cellSize;
-
-		g2D.setBackground(g2D.getBackground());
 
 		// Reset Anti-aliasing
 		g2D.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
@@ -168,12 +165,12 @@ class GridPanel extends JPanel {
 				else if (valid)
 					if (hover)
 						bg = Colors.ORANGE;
-					else if (isPlayer1)
-						bg = Colors.BLUE;
+					else if (isBlackPlayer)
+						bg = Color.BLUE;
 					else
-						bg = Colors.RED;
+						bg = Color.RED;
 				else
-					bg = Colors.BACKGROUND_1;
+					bg = Colors.NEUTRAL;
 
 				// Draw Cells
 				g2D.setColor(bg);
