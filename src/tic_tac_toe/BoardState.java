@@ -65,7 +65,6 @@ final class BoardState implements Comparable<BoardState> {
 		return canonicalize(this);
 	}
 
-	// TODO add transformations to compress table.
 	/**
 	 * @return The inverse of the canonicalizing {@code Transform}.
 	 */
