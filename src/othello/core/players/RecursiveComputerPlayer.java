@@ -22,8 +22,6 @@ import othello.util.tuple.Pair;
 
 public class RecursiveComputerPlayer extends ComputerPlayer {
 
-	private static final boolean RANDOM_FIRST_MOVE = true;
-
 	private static final Random RANDY = new Random();
 
 	private final int maxCacheDepth;
@@ -35,16 +33,40 @@ public class RecursiveComputerPlayer extends ComputerPlayer {
 		this.maxSearchDepth = maxSearchDepth;
 	}
 
-	@Override
-	protected Position computeMove(int[][] valueGrid, boolean[][] takenGrid, Position currentPos, boolean horizontal, int score, int oppScore, String playerName) {
-		int gridSize = valueGrid.length;
+	private static boolean[][] copyGrid(boolean[][] grid) {
+		int gridSize = grid.length;
 
-		if (RANDOM_FIRST_MOVE && currentPos == null)
-			return new Position(RANDY.nextInt(gridSize), RANDY.nextInt(gridSize));
+		boolean[][] copyGrid = new boolean[gridSize][];
+
+		for (int i = 0; i < gridSize; i++)
+			copyGrid[i] = Arrays.copyOf(grid[i], gridSize);
+
+		return copyGrid;
+	}
+
+	private static boolean[][] copyGridInv(boolean[][] grid) {
+		int gridSize = grid.length;
+
+		boolean[][] copyGrid = new boolean[gridSize][];
+
+		for (int i = 0; i < gridSize; i++) {
+			boolean[] gridRow     = grid[i];
+			boolean[] copyGridRow = new boolean[gridSize];
+			for (int j = 0; j < gridSize; j++)
+				copyGridRow[j] = !gridRow[j];
+			copyGrid[i] = copyGridRow;
+		}
+
+		return copyGrid;
+	}
+
+	@Override
+	protected Position computeMove(boolean[][] curGrid, boolean[][] takenGrid, int curScore, int oppScore, String playerName) {
+		int gridSize = curGrid.length;
 
 		ExecutorService threadPool = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
 
-		Position[] validMoves = Othello.getValidMoves(takenGrid, currentPos, horizontal);
+		Position[] validMoves = Othello.getValidMoves(curGrid, takenGrid);
 
 		int moveCount = validMoves.length;
 
@@ -57,21 +79,22 @@ public class RecursiveComputerPlayer extends ComputerPlayer {
 
 		System.out.println(playerName);
 		for (int i = 0; i < moveCount; i++) {
+			boolean[][] curGridCopy   = copyGrid(curGrid);
+			boolean[][] takenGridCopy = copyGrid(takenGrid);
+
 			Position move = validMoves[i];
 
 			String format = "  Move %" + moveCountStr.length() + "d/" + moveCountStr + " at " + String.format("%8s", move) + ": %6d%n";
 
 			IntConsumer callback = value -> System.out.printf(format, counter.incrementAndGet(), value);
 
-			score = Othello.simulateMove(valueGrid, takenGrid, validMoves[i], score);
+			IntPair scoreCopies = Othello.simulateMove(curGridCopy, takenGridCopy, move, curScore, oppScore);
 
 			boolean[][] taken = new boolean[gridSize][];
 			for (int j = 0; j < gridSize; j++)
 				taken[j] = Arrays.copyOf(takenGrid[j], gridSize);
 
-			futures[i] = threadPool.submit(new Evaluator(valueGrid, taken, validMoves[i], !horizontal, score, oppScore, callback));
-
-			score = Othello.undoSimulateMove(valueGrid, takenGrid, validMoves[i], score);
+			futures[i] = threadPool.submit(new Evaluator(curGridCopy, takenGridCopy, scoreCopies.first, scoreCopies.second, callback));
 		}
 
 		Position bestMove = validMoves[0];
@@ -112,33 +135,29 @@ public class RecursiveComputerPlayer extends ComputerPlayer {
 
 	private class Evaluator implements Callable<Integer> {
 
-		private final Map<Pair<Pair<TakenGridWrapper, Position>, IntPair>, Integer> cache = new HashMap<>();
+		private final Map<Pair<Boolean, Pair<GridWrapper, GridWrapper>>, Integer> cache = new HashMap<>();
 
-		private int[][]     valueGrid;
+		private boolean[][] curGrid;
 		private boolean[][] takenGrid;
-		private Position    currentPos;
-		private boolean     horizontal;
-		private int         score;
+		private int         curScore;
 		private int         oppScore;
 
 		private IntConsumer callback;
 
-		private Evaluator(int[][] valueGrid, boolean[][] takenGrid, Position currentPos, boolean horizontal, int score, int oppScore, IntConsumer callback) {
+		private Evaluator(boolean[][] curGrid, boolean[][] takenGrid, int curScore, int oppScore, IntConsumer callback) {
 			// @formatter:off
-			this.valueGrid  = valueGrid;
-			this.takenGrid  = takenGrid;
-			this.currentPos = currentPos;
-			this.horizontal = horizontal;
-			this.score      = score;
-			this.oppScore   = oppScore;
-			this.callback   = callback;
-			// @formtter:on
+			this.curGrid   = curGrid;
+			this.takenGrid = takenGrid;
+			this.curScore  = curScore;
+			this.oppScore  = oppScore;
+			this.callback  = callback;
+			// @formatter:on
 		}
 
 		@Override
 		public Integer call() {
 			try {
-				int val = evaluateRecursively(Integer.MIN_VALUE, Integer.MAX_VALUE, 1, true);
+				int val = evaluateRecursively(copyGridInv(curGrid), copyGrid(takenGrid), curScore, oppScore, Integer.MIN_VALUE, Integer.MAX_VALUE, 1, true, false);
 				callback.accept(val);
 				return val;
 			} catch (Throwable t) {
@@ -148,48 +167,59 @@ public class RecursiveComputerPlayer extends ComputerPlayer {
 			}
 		}
 
-		private int evaluateRecursively(int alpha, int beta, int depth, boolean oppPlaying) {
+		private int evaluateRecursively(boolean[][] grid, boolean[][] takenGrid, int curScore, int oppScore, int alpha, int beta, int depth, boolean oppPlaying, boolean prevForfeit) {
+			if (depth <= 16) {
+				String        depthString = Integer.toString(depth);
+				StringBuilder builder     = new StringBuilder(depth + depthString.length());
+				for (int i = 0; i < depth; i++)
+					builder.append(' ');
+				builder.append(depthString);
+				System.out.println(builder.toString());
+			}
 			boolean writeCache = depth <= maxCacheDepth;
 			writeCache = false;
 
-			Integer value = readCache();
+			Integer value = readCache(prevForfeit, grid, takenGrid);
 
 			if (value != null)
 				return value;
 
-			if (depth >= maxSearchDepth || !Othello.hasRemainingMoves(currentPos, takenGrid, horizontal ^ oppPlaying)) {
-				value = score - oppScore;
+			Position[] validMoves = Othello.getValidMoves(grid, takenGrid);
+
+			boolean forfeit = validMoves[0] == null;
+
+			if (depth >= maxSearchDepth || prevForfeit && forfeit) {
+				value = curScore - oppScore;
 				if (writeCache)
-					writeCache(value, depth);
+					writeCache(value, prevForfeit, grid, takenGrid);
 				return value;
 			}
 
 			int val = oppPlaying ? beta : alpha;
 			int nextVal;
-			int sc;
 
-			Position[]     validMoves    = Othello.getValidMoves(takenGrid, currentPos, horizontal ^ oppPlaying);
+			int curScoreCopy;
+			int oppScoreCopy;
+
 			List<Position> validMoveList = new ArrayList<>(Arrays.asList(validMoves));
 			Collections.shuffle(validMoveList, RANDY);
 			validMoveList.toArray(validMoves);
 
 			for (Position move : validMoves) {
-				sc = Othello.simulateMove(valueGrid, takenGrid, move, oppPlaying ? oppScore : score);
-				if (oppPlaying)
-					oppScore = sc;
-				else
-					score = sc;
-				Position temp = currentPos;
-				currentPos = move;
+				boolean[][] gridCopy      = copyGrid(grid);
+				boolean[][] takenGridCopy = copyGrid(takenGrid);
 
-				nextVal = evaluateRecursively(alpha, beta, depth + 1, !oppPlaying);
+				IntPair scores = Othello.simulateMove(gridCopy, takenGridCopy, move, oppPlaying ? oppScore : curScore, oppPlaying ? curScore : oppScore);
 
-				currentPos = temp;
-				sc = Othello.undoSimulateMove(valueGrid, takenGrid, move, oppPlaying ? oppScore : score);
-				if (oppPlaying)
-					oppScore = sc;
-				else
-					score = sc;
+				if (oppPlaying) {
+					oppScoreCopy = scores.first;
+					curScoreCopy = scores.second;
+				} else {
+					curScoreCopy = scores.first;
+					oppScoreCopy = scores.second;
+				}
+
+				nextVal = evaluateRecursively(copyGridInv(gridCopy), copyGrid(takenGridCopy), curScoreCopy, oppScoreCopy, alpha, beta, depth + 1, !oppPlaying, forfeit);
 
 				if (oppPlaying ? nextVal < val : nextVal > val) {
 					val = nextVal;
@@ -202,37 +232,37 @@ public class RecursiveComputerPlayer extends ComputerPlayer {
 				}
 			}
 			if (writeCache)
-				writeCache(val, depth);
+				writeCache(val, prevForfeit, grid, takenGrid);
 			return val;
 		}
 
-		private Integer readCache() {
-			return cache.get(new Pair<>(new Pair<>(new TakenGridWrapper(), currentPos), new IntPair(score, oppScore)));
+		private Integer readCache(boolean prevForfeit, boolean[][] grid, boolean[][] takenGrid) {
+			return cache.get(new Pair<>(prevForfeit, new Pair<>(new GridWrapper(grid), new GridWrapper(takenGrid))));
 		}
 
-		private Integer writeCache(Integer value, int depth) {
-			return cache.put(new Pair<>(new Pair<>(new TakenGridWrapper(), currentPos), new IntPair(score, oppScore)), value);
+		private Integer writeCache(Integer value, boolean prevForfeit, boolean[][] grid, boolean[][] takenGrid) {
+			return cache.put(new Pair<>(prevForfeit, new Pair<>(new GridWrapper(grid), new GridWrapper(takenGrid))), value);
 		}
 
-		private class TakenGridWrapper {
+		private class GridWrapper {
 
 			private final boolean[][] grid;
 
-			private TakenGridWrapper() {
-				int gridSize = valueGrid.length;
+			private GridWrapper(boolean[][] grid) {
+				int gridSize = grid.length;
 				this.grid = new boolean[gridSize][];
 				for (int i = 0; i < gridSize; i++)
-					grid[i] = Arrays.copyOf(takenGrid[i], gridSize);
+					this.grid[i] = Arrays.copyOf(grid[i], gridSize);
 			}
 
 			@Override
 			public boolean equals(Object obj) {
-				if (!(obj instanceof TakenGridWrapper))
+				if (!(obj instanceof GridWrapper))
 					return false;
-				TakenGridWrapper tgw = (TakenGridWrapper) obj;
+				GridWrapper wrapper = (GridWrapper) obj;
 				for (int i = 0; i < grid.length; i++)
 					for (int j = 0; j < grid.length; j++)
-						if (grid[i][j] != tgw.grid[i][j])
+						if (grid[i][j] != wrapper.grid[i][j])
 							return false;
 				return true;
 			}

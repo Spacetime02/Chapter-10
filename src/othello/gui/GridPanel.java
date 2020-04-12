@@ -18,10 +18,14 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 
+import maxit.util.function.BooleanConsumer;
 import othello.core.Othello;
 import othello.core.Position;
+import othello.core.players.GreedyComputerPlayer;
 import othello.core.players.HumanPlayer;
+import othello.core.players.Player;
 import othello.core.players.RandomComputerPlayer;
+import othello.core.players.RecursiveComputerPlayer;
 import othello.util.tuple.Pair;
 
 class GridPanel extends JPanel {
@@ -43,14 +47,20 @@ class GridPanel extends JPanel {
 
 	private boolean[][] validMoveGrid;
 
-	GridPanel(int gridSize, boolean blackHuman, String blackName, boolean whiteHuman, String whiteName, int cacheDepth, int searchDepth, JScrollPane scrollPane, IntConsumer blackScoreCallback, IntConsumer whiteScoreCallback) {
+	BooleanConsumer blackForfeitCallback;
+	BooleanConsumer whiteForfeitCallback;
+
+	GridPanel(int gridSize, int blackType, String blackName, int whiteType, String whiteName, int cacheDepth, int searchDepth, JScrollPane scrollPane, BooleanConsumer blackForfeitCallback, BooleanConsumer whiteForfeitCallback, IntConsumer blackScoreCallback, IntConsumer whiteScoreCallback) {
 		super(null, true);
 
 		this.scrollPane = scrollPane;
 
+		this.blackForfeitCallback = blackForfeitCallback;
+		this.whiteForfeitCallback = whiteForfeitCallback;
+
 		setBackground(Colors.BACKGROUND_0);
 
-		setup(gridSize, blackHuman, blackName, whiteHuman, whiteName, cacheDepth, searchDepth, blackScoreCallback, whiteScoreCallback);
+		setup(gridSize, blackType, blackName, whiteType, whiteName, cacheDepth, searchDepth, blackScoreCallback, whiteScoreCallback);
 
 		new Thread(() -> {
 			game.playGame();
@@ -70,12 +80,8 @@ class GridPanel extends JPanel {
 		}).start();
 	}
 
-	void setup(int gridSize, boolean blackHuman, String blackName, boolean whiteHuman, String whiteName, int cacheDepth, int searchDepth, IntConsumer blackScoreCallback, IntConsumer whiteScoreCallback) {
-//		Player player1 = blackHuman ? new HumanPlayer(blackName) : new RecursiveComputerPlayer(blackName, cacheDepth, searchDepth);
-//		Player player2 = whiteHuman ? new HumanPlayer(whiteName) : new RecursiveComputerPlayer(whiteName, cacheDepth, searchDepth);
-
-		// TODO use recursive computer players.
-		game = new Othello(gridSize, blackHuman ? new HumanPlayer(blackName) : new RandomComputerPlayer(blackName), whiteHuman ? new HumanPlayer(whiteName) : new RandomComputerPlayer(whiteName), () -> {
+	void setup(int gridSize, int blackType, String blackName, int whiteType, String whiteName, int cacheDepth, int searchDepth, IntConsumer blackScoreCallback, IntConsumer whiteScoreCallback) {
+		game = new Othello(gridSize, mkPlayer(blackType, blackName, cacheDepth, searchDepth), mkPlayer(whiteType, whiteName, cacheDepth, searchDepth), () -> {
 			Point p = getMousePosition();
 			listener.update(p != null && listener.clickable(processPos(p)));
 		}, blackScoreCallback, whiteScoreCallback);
@@ -100,6 +106,26 @@ class GridPanel extends JPanel {
 
 		for (Position p : positions)
 			validMoveGrid[p.i][p.j] = true;
+	}
+
+	private Player mkPlayer(int type, String name, int cacheDepth, int searchDepth) {
+		switch (type) {
+		case 0:
+			return new HumanPlayer(name);
+		case 1:
+			return new RecursiveComputerPlayer(name, cacheDepth, searchDepth);
+		case 2:
+			return new RandomComputerPlayer(name);
+		case 3:
+			return new GreedyComputerPlayer(name);
+		default:
+			return null;
+		}
+	}
+
+	void forfeit(boolean black) {
+		if (black == game.isBlackPlayer())
+			game.queueUserInput(null);
 	}
 
 	@Override
@@ -153,7 +179,7 @@ class GridPanel extends JPanel {
 				boolean taken      = game.isTaken(pos);
 				boolean blackTaken = game.isBlack(pos);
 				boolean hover      = pos.equals(hoverPos);
-				boolean valid      = validMoveGrid[i][j];
+				boolean valid      = validMoveGrid != null && validMoveGrid[i][j];
 
 				Color bg;
 
@@ -282,8 +308,6 @@ class GridPanel extends JPanel {
 
 			Pair<Position, Point> processedPos = processPos(pos);
 
-			validMoveGrid = game.getValidMoveGrid();
-
 			hoverPos = processedPos.first;
 
 			update(clickable(processedPos));
@@ -296,6 +320,10 @@ class GridPanel extends JPanel {
 		private void update(boolean clickable) {
 			setCursor(clickable && game.getCurrentPlayer() instanceof HumanPlayer ? Cursors.HAND : Cursors.DEFAULT);
 			validMoveGrid = game.getValidMoveGrid();
+
+			blackForfeitCallback.accept(validMoveGrid == null && game.isBlackPlayer());
+			whiteForfeitCallback.accept(validMoveGrid == null && game.isWhitePlayer());
+
 			repaint();
 		}
 

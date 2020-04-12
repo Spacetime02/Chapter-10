@@ -6,6 +6,9 @@ import java.awt.Dimension;
 import java.awt.EventQueue;
 import java.awt.Font;
 import java.awt.GridBagLayout;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.util.function.IntConsumer;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
@@ -13,7 +16,9 @@ import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.UIManager;
 
+import maxit.util.function.BooleanConsumer;
 import othello.util.tuple.Pair;
 
 public class GamePanel extends JPanel {
@@ -29,14 +34,14 @@ public class GamePanel extends JPanel {
 	private static JLabel blackScoreLabel;
 	private static JLabel whiteScoreLabel;
 
-	private JPanel gridPanel;
+	private GridPanel gridPanel;
 
 	public GamePanel() {
 		super(new BorderLayout(), true);
 		setBackground(Colors.BACKGROUND_0);
 	}
 
-	void setup(int gridSize, boolean blackHuman, String blackName, boolean whiteHuman, String whiteName, int cacheDepth, int searchDepth, GUI gui) {
+	void setup(int gridSize, int blackType, String blackName, int whiteType, String whiteName, int cacheDepth, int searchDepth, GUI gui) {
 		JPanel parentPanel = new JPanel(new BorderLayout());
 		parentPanel.setBackground(Colors.BACKGROUND_0);
 
@@ -46,24 +51,30 @@ public class GamePanel extends JPanel {
 		JScrollPane scrollPane = new JScrollPane(gridPositioner);
 		scrollPane.setBackground(Colors.NEUTRAL);
 
-		gridPanel = new GridPanel(gridSize, blackHuman, blackName, whiteHuman, whiteName, cacheDepth, searchDepth, scrollPane, blackScore -> EventQueue.invokeLater(() -> blackScoreLabel.setText(Integer.toString(blackScore))), score2 -> EventQueue.invokeLater(() -> whiteScoreLabel.setText(Integer.toString(score2))));
+		Pair<Pair<Pair<JLabel, JButton>, Box>, BooleanConsumer> blackScoreBox = mkScoreBox(blackName, Color.BLUE);
+		Pair<Pair<Pair<JLabel, JButton>, Box>, BooleanConsumer> whiteScoreBox = mkScoreBox(whiteName, Color.RED);
 
-		Pair<JLabel, Box> scoreBox1 = mkScoreBox(blackName, Color.BLUE);
-		Pair<JLabel, Box> scoreBox2 = mkScoreBox(whiteName, Color.RED);
+		IntConsumer blackScoreCallback = blackScore -> EventQueue.invokeLater(() -> blackScoreLabel.setText(Integer.toString(blackScore)));
+		IntConsumer whiteScoreCallback = whiteScore -> EventQueue.invokeLater(() -> whiteScoreLabel.setText(Integer.toString(whiteScore)));
 
-		blackScoreLabel = scoreBox1.first;
-		whiteScoreLabel = scoreBox2.first;
+		gridPanel = new GridPanel(gridSize, blackType, blackName, whiteType, whiteName, cacheDepth, searchDepth, scrollPane, blackScoreBox.second, whiteScoreBox.second, blackScoreCallback, whiteScoreCallback);
+
+		blackScoreBox.first.first.second.addActionListener(e -> gridPanel.forfeit(true));
+		whiteScoreBox.first.first.second.addActionListener(e -> gridPanel.forfeit(false));
+
+		blackScoreLabel = blackScoreBox.first.first.first;
+		whiteScoreLabel = whiteScoreBox.first.first.first;
 
 		add(parentPanel);
 		parentPanel.add(scrollPane, BorderLayout.CENTER);
-		parentPanel.add(scoreBox1.second, BorderLayout.WEST);
-		parentPanel.add(scoreBox2.second, BorderLayout.EAST);
+		parentPanel.add(blackScoreBox.first.second, BorderLayout.WEST);
+		parentPanel.add(whiteScoreBox.first.second, BorderLayout.EAST);
 		gridPositioner.add(gridPanel);
 
 		gui.showGamePanel();
 	}
 
-	private Pair<JLabel, Box> mkScoreBox(String name, Color color) {
+	private static Pair<Pair<Pair<JLabel, JButton>, Box>, BooleanConsumer> mkScoreBox(String name, Color color) {
 		JLabel nameLabel  = new JLabel(name);
 		JLabel scoreLabel = new JLabel("0");
 
@@ -80,8 +91,8 @@ public class GamePanel extends JPanel {
 			@Override
 			public Dimension getPreferredSize() {
 				Dimension sup = super.getPreferredSize();
-				sup.width += 48;
-				sup.height += 48;
+				sup.width += 48 + GridPanel.BORDER_THICKNESS;
+				sup.height += 48 + GridPanel.BORDER_THICKNESS;
 				return sup;
 			}
 
@@ -91,6 +102,15 @@ public class GamePanel extends JPanel {
 		skipButton.setBorder(BorderFactory.createMatteBorder(GridPanel.BORDER_THICKNESS, GridPanel.BORDER_THICKNESS, GridPanel.BORDER_THICKNESS, GridPanel.BORDER_THICKNESS, Color.GREEN));
 		skipButton.setFont(SKIP_FONT);
 		skipButton.setForeground(color);
+		skipButton.setFocusPainted(false);
+		skipButton.addMouseListener(new MouseAdapter() {
+
+			@Override
+			public void mouseEntered(MouseEvent e) {
+				UIManager.put("Button.select", skipButton.getBackground());
+			}
+
+		});
 
 		Box box = GUIUtils.hBox(
 				GUIUtils.hStrut(SIDE_SPACING),
@@ -103,7 +123,14 @@ public class GamePanel extends JPanel {
 						GUIUtils.hCenter(skipButton),
 						GUIUtils.vStrut(SIDE_SPACING)),
 				GUIUtils.hStrut(SIDE_SPACING));
-		return new Pair<>(scoreLabel, box);
+
+		BooleanConsumer forfeitCallback = enabled -> {
+			skipButton.setBackground(enabled ? color : Colors.NEUTRAL);
+			skipButton.setForeground(enabled ? Color.BLACK : color);
+			skipButton.setCursor(enabled ? Cursors.HAND : Cursors.DEFAULT);
+		};
+
+		return new Pair<>(new Pair<>(new Pair<>(scoreLabel, skipButton), box), forfeitCallback);
 	}
 
 }

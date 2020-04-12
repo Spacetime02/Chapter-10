@@ -4,6 +4,8 @@ import java.awt.CardLayout;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Font;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
@@ -31,7 +33,7 @@ public class GUI extends JFrame {
 	private static final long serialVersionUID = 1L;
 
 	private static final int SPINNER_COLUMNS = 7;
-	private static final int FIELD_COLUMNS   = 15;
+	private static final int FIELD_COLUMNS   = 18;
 
 	static final int SCROLLBAR_SIZE = UIManager.getInt("ScrollBar.width");
 
@@ -84,9 +86,9 @@ public class GUI extends JFrame {
 		String n2 = getRandomName();
 
 		Pair<JLabel, JSpinner>          sizePair        = mkSpinner("Grid Size", 4, null, Defaults.GRID_SIZE, 2);
-		Pair<JLabel, JComboBox<String>> blackTypePair   = mkComboBox("Black Player Type", "Human", "Human", "Computer");
+		Pair<JLabel, JComboBox<String>> blackTypePair   = mkComboBox("Black Player Type", "Human", "Human", "Recursive Computer", "Random Computer", "Greedy Computer");
 		Pair<JLabel, JTextField>        blackNamePair   = mkField("Black Player Name", n1);
-		Pair<JLabel, JComboBox<String>> whiteTypePair   = mkComboBox("White Player Type", "Computer", "Human", "Computer");
+		Pair<JLabel, JComboBox<String>> whiteTypePair   = mkComboBox("White Player Type", "Recursive Computer", "Human", "Recursive Computer", "Random Computer", "Greedy Computer");
 		Pair<JLabel, JTextField>        whiteNamePair   = mkField("White Player Name", n2);
 		Pair<JLabel, JSpinner>          cacheDepthPair  = mkSpinner("Maximum Cache Depth", 0, null, Defaults.CACHE_DEPTH, 1);
 		Pair<JLabel, JSpinner>          searchDepthPair = mkSpinner("Maximum Search Depth", 1, null, Defaults.SEARCH_DEPTH, 1);
@@ -123,6 +125,14 @@ public class GUI extends JFrame {
 		playButton.setBorder(null);
 		playButton.setFocusPainted(false);
 		playButton.setCursor(Cursors.HAND);
+		playButton.addMouseListener(new MouseAdapter() {
+
+			@Override
+			public void mouseEntered(MouseEvent e) {
+				UIManager.put("Button.select", playButton.getBackground());
+			}
+
+		});
 
 		GUIUtils.vSpace(sizeSelect,
 				GUIUtils.hCenter(title),
@@ -136,7 +146,7 @@ public class GUI extends JFrame {
 		GamePanel gamePanel = new GamePanel();
 		add(gamePanel, "gamePanel");
 
-		playButton.addActionListener(e -> gamePanel.setup((int) size.getValue(), blackType.getSelectedIndex() == 0, blackName.getText(), whiteType.getSelectedIndex() == 0, whiteName.getText(), (int) cacheDepth.getValue(), (int) searchDepth.getValue(), this));
+		playButton.addActionListener(e -> gamePanel.setup((int) size.getValue(), blackType.getSelectedIndex(), blackName.getText(), whiteType.getSelectedIndex(), whiteName.getText(), (int) cacheDepth.getValue(), (int) searchDepth.getValue(), this));
 
 		layout.show(getContentPane(), "sizeSelect");
 
@@ -211,6 +221,14 @@ public class GUI extends JFrame {
 		button.setBorder(BorderFactory.createMatteBorder(topBorderThickness, leftBorderThickness, bottomBorderThickness, rightBorderThickness, Colors.ON_BACKGROUND));
 		button.setCursor(Cursors.HAND);
 		button.setFocusPainted(false);
+		button.addMouseListener(new MouseAdapter() {
+
+			@Override
+			public void mouseEntered(MouseEvent e) {
+				UIManager.put("Button.select", button.getBackground());
+			}
+
+		});
 	}
 
 	private static void setupComponent(JComponent comp) {

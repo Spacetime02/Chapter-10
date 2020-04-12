@@ -3,6 +3,7 @@ package othello.core;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.function.IntConsumer;
@@ -12,7 +13,7 @@ import othello.util.tuple.IntPair;
 
 public class Othello {
 
-	private final BlockingQueue<Position> userInputQueue = new LinkedBlockingDeque<Position>();
+	private final BlockingQueue<Optional<Position>> userInputQueue = new LinkedBlockingDeque<>();
 
 	private int gridSize;
 
@@ -51,8 +52,8 @@ public class Othello {
 		currentPlayer = blackPlayer;
 		currentOpponent = whitePlayer;
 
-		blackScore = 0;
-		whiteScore = 0;
+		blackScore = 2;
+		whiteScore = 2;
 
 		this.updateCallback = updateCallback;
 		this.blackScoreCallback = scoreCallback1;
@@ -62,12 +63,12 @@ public class Othello {
 	public static boolean[][] getValidMoveGrid(boolean[][] curGrid, boolean[][] takenGrid) {
 		Position[] validMoves = getValidMoves(curGrid, takenGrid);
 
+		if (validMoves[0] == null)
+			return null;
+
 		int gridSize = takenGrid.length;
 
 		boolean[][] validMoveGrid = new boolean[gridSize][gridSize];
-
-		if (validMoves[0] == null)
-			return validMoveGrid;
 
 		for (Position validMove : validMoves)
 			validMoveGrid[validMove.i][validMove.j] = true;
@@ -259,14 +260,6 @@ public class Othello {
 		}
 	}
 
-	public void reset() {
-		currentPlayer = blackPlayer;
-		currentOpponent = whitePlayer;
-
-		blackScoreCallback.accept(blackScore = 0);
-		blackScoreCallback.accept(whiteScore = 0);
-	}
-
 	public void doMove(Position movePos) {
 		if (!isValid(movePos))
 			throw new InvalidMoveException(movePos);
@@ -348,7 +341,7 @@ public class Othello {
 	public void queueUserInput(Position userInput) {
 		while (true)
 			try {
-				userInputQueue.put(userInput);
+				userInputQueue.put(Optional.ofNullable(userInput));
 				break;
 			} catch (InterruptedException e) {
 				e.printStackTrace();
@@ -358,7 +351,7 @@ public class Othello {
 	private Position getUserInput() {
 		while (true)
 			try {
-				Position userInput = userInputQueue.take();
+				Position userInput = userInputQueue.take().orElse(null);
 				if (isValid(userInput))
 					return userInput;
 			} catch (InterruptedException e) {
