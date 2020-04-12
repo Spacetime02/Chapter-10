@@ -22,6 +22,8 @@ import othello.util.tuple.Pair;
 
 public class RecursiveComputerPlayer extends ComputerPlayer {
 
+	private static final boolean SHUFFLE = false;
+
 	/**
 	 * Allows for a random selection among the best possible moves.
 	 */
@@ -30,7 +32,7 @@ public class RecursiveComputerPlayer extends ComputerPlayer {
 	/**
 	 * Set LOG_DEPTH <= 0 to disable nested logging.
 	 */
-	private static final int LOG_DEPTH = 0;
+	private static final int LOG_DEPTH = 12;
 
 	private final int maxCacheDepth;
 	private final int maxSearchDepth;
@@ -102,7 +104,7 @@ public class RecursiveComputerPlayer extends ComputerPlayer {
 			for (int j = 0; j < gridSize; j++)
 				taken[j] = Arrays.copyOf(takenGrid[j], gridSize);
 
-			futures[i] = threadPool.submit(new Evaluator(curGridCopy, takenGridCopy, scoreCopies.first, scoreCopies.second, callback));
+			futures[i] = threadPool.submit(new Evaluator(curGridCopy, takenGridCopy, scoreCopies.first, scoreCopies.second, callback, i == 1));
 		}
 
 		Position bestMove = validMoves[0];
@@ -122,6 +124,9 @@ public class RecursiveComputerPlayer extends ComputerPlayer {
 		for (int i = 0; i < validMoves.length; i++) {
 			try {
 				val = (int) futures[i].get();
+				if (0 < LOG_DEPTH)
+					System.out.printf("%-3d - %-3d%n", 1, val);
+
 			} catch (InterruptedException | ExecutionException e) {
 				e.printStackTrace();
 				threadPool.shutdownNow();
@@ -145,6 +150,8 @@ public class RecursiveComputerPlayer extends ComputerPlayer {
 
 		private final Map<Pair<Boolean, Pair<GridWrapper, GridWrapper>>, Integer> cache = new HashMap<>();
 
+		private boolean log;
+
 		private boolean[][] curGrid;
 		private boolean[][] takenGrid;
 		private int         curScore;
@@ -152,7 +159,8 @@ public class RecursiveComputerPlayer extends ComputerPlayer {
 
 		private IntConsumer callback;
 
-		private Evaluator(boolean[][] curGrid, boolean[][] takenGrid, int curScore, int oppScore, IntConsumer callback) {
+		private Evaluator(boolean[][] curGrid, boolean[][] takenGrid, int curScore, int oppScore, IntConsumer callback, boolean log) {
+			this.log = log;
 			// @formatter:off
 			this.curGrid   = curGrid;
 			this.takenGrid = takenGrid;
@@ -176,16 +184,6 @@ public class RecursiveComputerPlayer extends ComputerPlayer {
 		}
 
 		private int evaluateRecursively(boolean[][] grid, boolean[][] takenGrid, int curScore, int oppScore, int alpha, int beta, int depth, boolean oppPlaying, boolean prevForfeit) {
-			if (depth <= LOG_DEPTH) {
-				String depthString = Integer.toString(depth);
-
-				StringBuilder builder = new StringBuilder(depth + depthString.length());
-
-				for (int i = 0; i < depth; i++)
-					builder.append(' ');
-
-				System.out.println(builder.append(depthString).toString());
-			}
 			boolean writeCache = depth <= maxCacheDepth;
 			writeCache = false;
 
@@ -211,9 +209,11 @@ public class RecursiveComputerPlayer extends ComputerPlayer {
 			int curScoreCopy;
 			int oppScoreCopy;
 
-			List<Position> validMoveList = new ArrayList<>(Arrays.asList(validMoves));
-			Collections.shuffle(validMoveList, RANDY);
-			validMoveList.toArray(validMoves);
+			if (SHUFFLE) {
+				List<Position> validMoveList = new ArrayList<>(Arrays.asList(validMoves));
+				Collections.shuffle(validMoveList, RANDY);
+				validMoveList.toArray(validMoves);
+			}
 
 			for (Position move : validMoves) {
 				boolean[][] gridCopy      = copyGrid(grid);
@@ -230,6 +230,9 @@ public class RecursiveComputerPlayer extends ComputerPlayer {
 				}
 
 				nextVal = evaluateRecursively(copyGridInv(gridCopy), copyGrid(takenGridCopy), curScoreCopy, oppScoreCopy, alpha, beta, depth + 1, !oppPlaying, forfeit);
+
+				if (log && depth < LOG_DEPTH)
+					System.out.printf("%" + depth + "s%-3d - %-3d%n", "", depth + 1, nextVal);
 
 				if (oppPlaying ? nextVal < val : nextVal > val) {
 					val = nextVal;
