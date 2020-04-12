@@ -27,6 +27,9 @@ public class RecursiveComputerPlayer extends ComputerPlayer {
 	 */
 	private static final Random RANDY = new Random();
 
+	/**
+	 * Set LOG_DEPTH <= 0 to disable nested logging.
+	 */
 	private static final int LOG_DEPTH = 0;
 
 	private final int maxCacheDepth;
