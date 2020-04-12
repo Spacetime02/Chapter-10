@@ -220,7 +220,7 @@ public class Othello {
 			}
 			return new IntPair(curScore + points + 1, oppScore - points);
 		} else
-			return new IntPair(0, 0);
+			return new IntPair(curScore, oppScore);
 	}
 
 	public void playGame() {

@@ -18,7 +18,6 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 
-import maxit.util.function.BooleanConsumer;
 import othello.core.Othello;
 import othello.core.Position;
 import othello.core.players.GreedyComputerPlayer;
@@ -26,6 +25,7 @@ import othello.core.players.HumanPlayer;
 import othello.core.players.Player;
 import othello.core.players.RandomComputerPlayer;
 import othello.core.players.RecursiveComputerPlayer;
+import othello.util.function.BooleanConsumer;
 import othello.util.tuple.Pair;
 
 class GridPanel extends JPanel {
@@ -121,6 +121,10 @@ class GridPanel extends JPanel {
 		default:
 			return null;
 		}
+	}
+
+	boolean isHuman() {
+		return game.getCurrentPlayer() instanceof HumanPlayer;
 	}
 
 	void forfeit(boolean black) {

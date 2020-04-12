@@ -22,7 +22,12 @@ import othello.util.tuple.Pair;
 
 public class RecursiveComputerPlayer extends ComputerPlayer {
 
+	/**
+	 * Allows for a random selection among the best possible moves.
+	 */
 	private static final Random RANDY = new Random();
+
+	private static final int LOG_DEPTH = 0;
 
 	private final int maxCacheDepth;
 	private final int maxSearchDepth;
@@ -168,13 +173,15 @@ public class RecursiveComputerPlayer extends ComputerPlayer {
 		}
 
 		private int evaluateRecursively(boolean[][] grid, boolean[][] takenGrid, int curScore, int oppScore, int alpha, int beta, int depth, boolean oppPlaying, boolean prevForfeit) {
-			if (depth <= 16) {
-				String        depthString = Integer.toString(depth);
-				StringBuilder builder     = new StringBuilder(depth + depthString.length());
+			if (depth <= LOG_DEPTH) {
+				String depthString = Integer.toString(depth);
+
+				StringBuilder builder = new StringBuilder(depth + depthString.length());
+
 				for (int i = 0; i < depth; i++)
 					builder.append(' ');
-				builder.append(depthString);
-				System.out.println(builder.toString());
+
+				System.out.println(builder.append(depthString).toString());
 			}
 			boolean writeCache = depth <= maxCacheDepth;
 			writeCache = false;
@@ -189,6 +196,7 @@ public class RecursiveComputerPlayer extends ComputerPlayer {
 			boolean forfeit = validMoves[0] == null;
 
 			if (depth >= maxSearchDepth || prevForfeit && forfeit) {
+				System.out.println(curScore + "," + oppScore);
 				value = curScore - oppScore;
 				if (writeCache)
 					writeCache(value, prevForfeit, grid, takenGrid);

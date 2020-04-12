@@ -1,4 +1,4 @@
-package maxit.util.function;
+package othello.util.function;
 
 import java.util.Objects;
 
