@@ -50,7 +50,7 @@ class GridPanel extends JPanel {
 	BooleanConsumer blackForfeitCallback;
 	BooleanConsumer whiteForfeitCallback;
 
-	GridPanel(int gridSize, int blackType, String blackName, int whiteType, String whiteName, int cacheDepth, int searchDepth, JScrollPane scrollPane, BooleanConsumer blackForfeitCallback, BooleanConsumer whiteForfeitCallback, IntConsumer blackScoreCallback, IntConsumer whiteScoreCallback) {
+	GridPanel(int gridSize, int blackType, String blackName, int whiteType, String whiteName, int delay, int cacheDepth, int searchDepth, JScrollPane scrollPane, BooleanConsumer blackForfeitCallback, BooleanConsumer whiteForfeitCallback, IntConsumer blackScoreCallback, IntConsumer whiteScoreCallback) {
 		super(null, true);
 
 		this.scrollPane = scrollPane;
@@ -60,7 +60,7 @@ class GridPanel extends JPanel {
 
 		setBackground(Colors.BACKGROUND_0);
 
-		setup(gridSize, blackType, blackName, whiteType, whiteName, cacheDepth, searchDepth, blackScoreCallback, whiteScoreCallback);
+		setup(gridSize, blackType, blackName, whiteType, whiteName, delay, cacheDepth, searchDepth, blackScoreCallback, whiteScoreCallback);
 
 		new Thread(() -> {
 			game.playGame();
@@ -80,8 +80,8 @@ class GridPanel extends JPanel {
 		}).start();
 	}
 
-	void setup(int gridSize, int blackType, String blackName, int whiteType, String whiteName, int cacheDepth, int searchDepth, IntConsumer blackScoreCallback, IntConsumer whiteScoreCallback) {
-		game = new Othello(gridSize, mkPlayer(blackType, blackName, cacheDepth, searchDepth), mkPlayer(whiteType, whiteName, cacheDepth, searchDepth), () -> {
+	void setup(int gridSize, int blackType, String blackName, int whiteType, String whiteName, int delay, int cacheDepth, int searchDepth, IntConsumer blackScoreCallback, IntConsumer whiteScoreCallback) {
+		game = new Othello(gridSize, mkPlayer(blackType, blackName, delay, cacheDepth, searchDepth), mkPlayer(whiteType, whiteName, delay, cacheDepth, searchDepth), () -> {
 			Point p = getMousePosition();
 			listener.update(p != null && listener.clickable(processPos(p)));
 		}, blackScoreCallback, whiteScoreCallback);
@@ -108,16 +108,16 @@ class GridPanel extends JPanel {
 			validMoveGrid[p.i][p.j] = true;
 	}
 
-	private Player mkPlayer(int type, String name, int cacheDepth, int searchDepth) {
+	private Player mkPlayer(int type, String name, int delay, int cacheDepth, int searchDepth) {
 		switch (type) {
 		case 0:
 			return new HumanPlayer(name);
 		case 1:
-			return new RecursiveComputerPlayer(name, cacheDepth, searchDepth);
+			return new RecursiveComputerPlayer(name, delay, cacheDepth, searchDepth);
 		case 2:
-			return new RandomComputerPlayer(name);
+			return new RandomComputerPlayer(name, delay);
 		case 3:
-			return new GreedyComputerPlayer(name);
+			return new GreedyComputerPlayer(name, delay);
 		default:
 			return null;
 		}

@@ -35,8 +35,8 @@ public class RecursiveComputerPlayer extends ComputerPlayer {
 	private final int maxCacheDepth;
 	private final int maxSearchDepth;
 
-	public RecursiveComputerPlayer(String name, int maxCacheDepth, int maxSearchDepth) {
-		super(name);
+	public RecursiveComputerPlayer(String name, int delay, int maxCacheDepth, int maxSearchDepth) {
+		super(name, delay);
 		this.maxCacheDepth = maxCacheDepth;
 		this.maxSearchDepth = maxSearchDepth;
 	}
@@ -199,7 +199,6 @@ public class RecursiveComputerPlayer extends ComputerPlayer {
 			boolean forfeit = validMoves[0] == null;
 
 			if (depth >= maxSearchDepth || prevForfeit && forfeit) {
-				System.out.println(curScore + "," + oppScore);
 				value = curScore - oppScore;
 				if (writeCache)
 					writeCache(value, prevForfeit, grid, takenGrid);

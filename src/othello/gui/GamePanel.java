@@ -41,7 +41,7 @@ public class GamePanel extends JPanel {
 		setBackground(Colors.BACKGROUND_0);
 	}
 
-	void setup(int gridSize, int blackType, String blackName, int whiteType, String whiteName, int cacheDepth, int searchDepth, GUI gui) {
+	void setup(int gridSize, int blackType, String blackName, int whiteType, String whiteName, int delay, int cacheDepth, int searchDepth, GUI gui) {
 		JPanel parentPanel = new JPanel(new BorderLayout());
 		parentPanel.setBackground(Colors.BACKGROUND_0);
 
@@ -58,7 +58,7 @@ public class GamePanel extends JPanel {
 		IntConsumer blackScoreCallback = blackScore -> EventQueue.invokeLater(() -> blackScoreLabel.setText(Integer.toString(blackScore)));
 		IntConsumer whiteScoreCallback = whiteScore -> EventQueue.invokeLater(() -> whiteScoreLabel.setText(Integer.toString(whiteScore)));
 
-		gridPanel = new GridPanel(gridSize, blackType, blackName, whiteType, whiteName, cacheDepth, searchDepth, scrollPane, blackScoreBox.second, whiteScoreBox.second, blackScoreCallback, whiteScoreCallback);
+		gridPanel = new GridPanel(gridSize, blackType, blackName, whiteType, whiteName, delay, cacheDepth, searchDepth, scrollPane, blackScoreBox.second, whiteScoreBox.second, blackScoreCallback, whiteScoreCallback);
 
 		blackScoreBox.first.first.second.addActionListener(e -> gridPanel.forfeit(true));
 		whiteScoreBox.first.first.second.addActionListener(e -> gridPanel.forfeit(false));

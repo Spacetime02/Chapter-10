@@ -8,8 +8,8 @@ import othello.util.tuple.IntPair;
 
 public class GreedyComputerPlayer extends ComputerPlayer {
 
-	public GreedyComputerPlayer(String name) {
-		super(name);
+	public GreedyComputerPlayer(String name, int delay) {
+		super(name, delay);
 	}
 
 	private static boolean[][] copyGrid(boolean[][] grid) {

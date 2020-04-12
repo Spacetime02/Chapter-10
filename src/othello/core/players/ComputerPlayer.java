@@ -6,19 +6,20 @@ import othello.core.Position;
 
 public abstract class ComputerPlayer extends Player {
 
-	private static final long MIN_DURATION = 1250L;
+	private int delay;
 
-	public ComputerPlayer(String name) {
+	public ComputerPlayer(String name, int delay) {
 		super(name);
+		this.delay = delay;
 	}
 
 	@Override
 	public Position move(boolean[][] curGrid, boolean[][] takenGrid, int curScore, int oppScore, String playerName, Supplier<Position> userInput) {
-		long end = System.currentTimeMillis() + MIN_DURATION;
+		long end = System.currentTimeMillis() + delay;
 
 		Position movePos = computeMove(curGrid, takenGrid, curScore, oppScore, playerName);
 
-		Long remainingTime;
+		long remainingTime;
 		while ((remainingTime = end - System.currentTimeMillis()) > 0)
 			try {
 				Thread.sleep(remainingTime);

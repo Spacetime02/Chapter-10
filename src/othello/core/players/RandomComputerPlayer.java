@@ -9,8 +9,8 @@ public class RandomComputerPlayer extends ComputerPlayer {
 
 	private static final Random RANDY = new Random();
 
-	public RandomComputerPlayer(String name) {
-		super(name);
+	public RandomComputerPlayer(String name, int delay) {
+		super(name, delay);
 	}
 
 	@Override

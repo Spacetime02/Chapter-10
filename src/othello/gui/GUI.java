@@ -90,6 +90,7 @@ public class GUI extends JFrame {
 		Pair<JLabel, JTextField>        blackNamePair   = mkField("Black Player Name", n1);
 		Pair<JLabel, JComboBox<String>> whiteTypePair   = mkComboBox("White Player Type", "Recursive Computer", "Human", "Recursive Computer", "Random Computer", "Greedy Computer");
 		Pair<JLabel, JTextField>        whiteNamePair   = mkField("White Player Name", n2);
+		Pair<JLabel, JSpinner>          delayPair       = mkSpinner("Computer Player Delay (ms)", 0, null, Defaults.DELAY, 50);
 		Pair<JLabel, JSpinner>          cacheDepthPair  = mkSpinner("Maximum Cache Depth", 0, null, Defaults.CACHE_DEPTH, 1);
 		Pair<JLabel, JSpinner>          searchDepthPair = mkSpinner("Maximum Search Depth", 1, null, Defaults.SEARCH_DEPTH, 1);
 
@@ -98,6 +99,7 @@ public class GUI extends JFrame {
 		JTextField        blackName   = blackNamePair.second;
 		JComboBox<String> whiteType   = whiteTypePair.second;
 		JTextField        whiteName   = whiteNamePair.second;
+		JSpinner          delay       = delayPair.second;
 		JSpinner          cacheDepth  = cacheDepthPair.second;
 		JSpinner          searchDepth = searchDepthPair.second;
 
@@ -136,7 +138,7 @@ public class GUI extends JFrame {
 
 		GUIUtils.vSpace(sizeSelect,
 				GUIUtils.hCenter(title),
-				mkInput(sizePair, blackTypePair, blackNamePair, whiteTypePair, whiteNamePair, cacheDepthPair, searchDepthPair),
+				mkInput(sizePair, blackTypePair, blackNamePair, whiteTypePair, whiteNamePair, delayPair, cacheDepthPair, searchDepthPair),
 				GUIUtils.hCenter(playButton));
 
 		add(sizeSelect, "sizeSelect");
@@ -146,7 +148,7 @@ public class GUI extends JFrame {
 		GamePanel gamePanel = new GamePanel();
 		add(gamePanel, "gamePanel");
 
-		playButton.addActionListener(e -> gamePanel.setup((int) size.getValue(), blackType.getSelectedIndex(), blackName.getText(), whiteType.getSelectedIndex(), whiteName.getText(), (int) cacheDepth.getValue(), (int) searchDepth.getValue(), this));
+		playButton.addActionListener(e -> gamePanel.setup((int) size.getValue(), blackType.getSelectedIndex(), blackName.getText(), whiteType.getSelectedIndex(), whiteName.getText(), (int) delay.getValue(), (int) cacheDepth.getValue(), (int) searchDepth.getValue(), this));
 
 		layout.show(getContentPane(), "sizeSelect");
 
